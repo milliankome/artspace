@@ -1,0 +1,2203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ArtSpace — Where Art Meets Elegance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    /* ─── DESIGN TOKENS ─────────────────────────────────── */
+    :root {
+      --brown-deep:   #3E2723;
+      --brown-mid:    #6D4C41;
+      --brown-warm:   #8D6E63;
+      --nude:         #C8A882;
+      --cream:        #F5EFE6;
+      --beige:        #EDE0D0;
+      --linen:        #FAF7F2;
+      --white:        #FFFFFF;
+      --charcoal:     #2C2C2C;
+      --text-light:   #7A6A5E;
+      --gold:         #B8996A;
+      --serif: 'Cormorant Garamond', serif;
+      --sans: 'Jost', sans-serif;
+      --transition: 0.45s cubic-bezier(0.25,0.46,0.45,0.94);
+      --shadow-soft: 0 8px 48px rgba(62,39,35,0.10);
+      --shadow-card: 0 4px 24px rgba(62,39,35,0.12);
+    }
+
+    /* ─── RESET & BASE ──────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: var(--sans);
+      background: var(--linen);
+      color: var(--charcoal);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+    img { display: block; max-width: 100%; }
+    a { text-decoration: none; color: inherit; }
+    button, input, textarea, select { font-family: var(--sans); }
+
+    /* ─── SCROLLBAR ─────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--cream); }
+    ::-webkit-scrollbar-thumb { background: var(--nude); border-radius: 3px; }
+
+    /* ─── UTILITY ───────────────────────────────────────── */
+    .serif { font-family: var(--serif); }
+    .container { max-width: 1240px; margin: 0 auto; padding: 0 2rem; }
+    .hidden { display: none !important; }
+    .fade-in { opacity: 0; transform: translateY(32px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── NAVIGATION ────────────────────────────────────── */
+    #nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      padding: 1.4rem 2.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: background var(--transition), box-shadow var(--transition);
+    }
+    #nav.scrolled {
+      background: rgba(250,247,242,0.97);
+      box-shadow: 0 2px 24px rgba(62,39,35,0.08);
+      backdrop-filter: blur(12px);
+    }
+    .nav-logo {
+      font-family: var(--serif);
+      font-size: 1.55rem;
+      font-weight: 600;
+      color: var(--brown-deep);
+      letter-spacing: 0.04em;
+    }
+    .nav-logo span { color: var(--gold); }
+    .nav-links { display: flex; gap: 2.2rem; align-items: center; }
+    .nav-links a {
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--brown-mid);
+      transition: color var(--transition);
+      position: relative;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -3px; left: 0;
+      width: 0; height: 1px;
+      background: var(--gold);
+      transition: width var(--transition);
+    }
+    .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+    .nav-links a:hover, .nav-links a.active { color: var(--brown-deep); }
+    .nav-cta {
+      background: var(--brown-deep);
+      color: var(--cream) !important;
+      padding: 0.6rem 1.4rem;
+      border-radius: 2px;
+      font-size: 0.78rem !important;
+      letter-spacing: 0.14em;
+      transition: background var(--transition) !important;
+    }
+    .nav-cta:hover { background: var(--brown-mid) !important; }
+    .nav-cta::after { display: none !important; }
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .hamburger span {
+      display: block; width: 24px; height: 1.5px;
+      background: var(--brown-deep);
+      transition: all 0.3s;
+    }
+
+    /* ─── PAGES ─────────────────────────────────────────── */
+    .page { display: none; padding-top: 80px; min-height: 100vh; }
+    .page.active { display: block; }
+
+    /* ─── HERO ──────────────────────────────────────────── */
+    #hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-left {
+      background: var(--brown-deep);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 6rem 4rem 6rem 5rem;
+      position: relative;
+    }
+    .hero-left::after {
+      content: '';
+      position: absolute;
+      right: -60px; top: 0; bottom: 0;
+      width: 120px;
+      background: var(--brown-deep);
+      clip-path: polygon(0 0, 50% 50%, 0 100%);
+      z-index: 2;
+    }
+    .hero-eyebrow {
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.8rem;
+      font-weight: 500;
+    }
+    .hero-title {
+      font-family: var(--serif);
+      font-size: clamp(2.8rem, 5vw, 4.4rem);
+      line-height: 1.12;
+      color: var(--cream);
+      font-weight: 300;
+      margin-bottom: 1.8rem;
+    }
+    .hero-title em { font-style: italic; color: var(--nude); }
+    .hero-desc {
+      font-size: 0.95rem;
+      color: rgba(245,239,230,0.72);
+      line-height: 1.9;
+      max-width: 380px;
+      margin-bottom: 3rem;
+      font-weight: 300;
+    }
+    .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--gold);
+      color: var(--white);
+      padding: 0.85rem 2.2rem;
+      font-size: 0.8rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: all var(--transition);
+      border-radius: 2px;
+    }
+    .btn-primary:hover { background: var(--nude); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(184,153,106,0.35); }
+    .btn-outline {
+      background: transparent;
+      color: var(--cream);
+      padding: 0.85rem 2.2rem;
+      font-size: 0.8rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 500;
+      border: 1px solid rgba(245,239,230,0.35);
+      cursor: pointer;
+      transition: all var(--transition);
+      border-radius: 2px;
+    }
+    .btn-outline:hover { border-color: var(--nude); color: var(--nude); }
+    .hero-right {
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-img-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      height: 100%;
+      gap: 4px;
+    }
+    .hero-img-cell {
+      background: var(--beige);
+      overflow: hidden;
+      position: relative;
+    }
+    .hero-img-cell:first-child { grid-row: span 2; }
+    .hero-img-cell img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform 0.8s ease;
+    }
+    .hero-img-cell:hover img { transform: scale(1.05); }
+    .hero-scroll {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--cream);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      opacity: 0.6;
+      z-index: 10;
+    }
+    .scroll-line {
+      width: 1px; height: 40px;
+      background: linear-gradient(to bottom, transparent, var(--cream));
+      animation: scrollLine 1.8s ease-in-out infinite;
+    }
+    @keyframes scrollLine {
+      0%, 100% { opacity: 0.3; transform: scaleY(0.5); transform-origin: top; }
+      50% { opacity: 0.8; transform: scaleY(1); }
+    }
+
+    /* ─── FEATURED PROJECTS (HOME) ──────────────────────── */
+    .section { padding: 7rem 0; }
+    .section-header { text-align: center; margin-bottom: 4.5rem; }
+    .section-eyebrow {
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-family: var(--serif);
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 300;
+      color: var(--brown-deep);
+      line-height: 1.2;
+    }
+    .section-line {
+      width: 40px; height: 1px;
+      background: var(--gold);
+      margin: 1.5rem auto 0;
+    }
+
+    .featured-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+    .featured-item {
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      aspect-ratio: 4/5;
+      background: var(--beige);
+    }
+    .featured-item:first-child { aspect-ratio: auto; grid-row: span 2; }
+    .featured-item img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform 0.8s ease;
+    }
+    .featured-item:hover img { transform: scale(1.07); }
+    .featured-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(62,39,35,0.88) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity var(--transition);
+      display: flex;
+      align-items: flex-end;
+      padding: 2rem;
+    }
+    .featured-item:hover .featured-overlay { opacity: 1; }
+    .featured-info h3 {
+      font-family: var(--serif);
+      font-size: 1.5rem;
+      color: var(--cream);
+      font-weight: 300;
+      margin-bottom: 0.3rem;
+    }
+    .featured-info p { font-size: 0.78rem; color: var(--nude); letter-spacing: 0.1em; text-transform: uppercase; }
+
+    /* ─── STATS BANNER ──────────────────────────────────── */
+    .stats-banner {
+      background: var(--brown-deep);
+      padding: 5rem 0;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: var(--serif);
+      font-size: 3.5rem;
+      color: var(--gold);
+      font-weight: 300;
+      line-height: 1;
+      margin-bottom: 0.6rem;
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(245,239,230,0.65);
+      font-weight: 400;
+    }
+
+    /* ─── PROCESS ───────────────────────────────────────── */
+    .process-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 3rem;
+    }
+    .process-step {
+      text-align: center;
+      padding: 2.5rem 1.5rem;
+      background: var(--white);
+      border-bottom: 2px solid transparent;
+      transition: border-color var(--transition), transform var(--transition);
+    }
+    .process-step:hover { border-color: var(--gold); transform: translateY(-6px); }
+    .step-num {
+      font-family: var(--serif);
+      font-size: 3rem;
+      color: var(--beige);
+      font-weight: 600;
+      line-height: 1;
+      margin-bottom: 1.2rem;
+    }
+    .process-step h3 {
+      font-family: var(--serif);
+      font-size: 1.3rem;
+      color: var(--brown-deep);
+      font-weight: 400;
+      margin-bottom: 0.8rem;
+    }
+    .process-step p { font-size: 0.88rem; color: var(--text-light); line-height: 1.8; }
+
+    /* ─── TESTIMONIAL ───────────────────────────────────── */
+    .testimonial-section {
+      background: var(--cream);
+      padding: 7rem 0;
+      text-align: center;
+    }
+    .testimonial-quote {
+      font-family: var(--serif);
+      font-size: clamp(1.4rem, 3vw, 2.2rem);
+      font-style: italic;
+      color: var(--brown-deep);
+      font-weight: 300;
+      max-width: 760px;
+      margin: 0 auto 2rem;
+      line-height: 1.5;
+    }
+    .testimonial-author {
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 500;
+    }
+
+    /* ─── CTA BANNER ────────────────────────────────────── */
+    .cta-banner {
+      background: var(--beige);
+      padding: 6rem 0;
+      text-align: center;
+    }
+    .cta-banner h2 {
+      font-family: var(--serif);
+      font-size: clamp(2rem, 4vw, 3rem);
+      color: var(--brown-deep);
+      font-weight: 300;
+      margin-bottom: 1.2rem;
+    }
+    .cta-banner p {
+      font-size: 0.95rem;
+      color: var(--text-light);
+      margin-bottom: 2.5rem;
+    }
+    .btn-dark {
+      background: var(--brown-deep);
+      color: var(--cream);
+      padding: 0.9rem 2.5rem;
+      font-size: 0.8rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: all var(--transition);
+      border-radius: 2px;
+      display: inline-block;
+    }
+    .btn-dark:hover { background: var(--brown-mid); transform: translateY(-2px); }
+
+    /* ─── PORTFOLIO PAGE ────────────────────────────────── */
+    .portfolio-filters {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 3.5rem;
+    }
+    .filter-btn {
+      background: transparent;
+      border: 1px solid var(--beige);
+      color: var(--text-light);
+      padding: 0.55rem 1.5rem;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all var(--transition);
+      border-radius: 2px;
+      font-family: var(--sans);
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--brown-deep);
+      border-color: var(--brown-deep);
+      color: var(--cream);
+    }
+    .portfolio-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .portfolio-card {
+      background: var(--white);
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+      cursor: pointer;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .portfolio-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-soft); }
+    .portfolio-card-img {
+      aspect-ratio: 4/3;
+      overflow: hidden;
+      background: var(--beige);
+    }
+    .portfolio-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s ease; }
+    .portfolio-card:hover .portfolio-card-img img { transform: scale(1.06); }
+    .portfolio-card-body { padding: 1.6rem; }
+    .portfolio-cat {
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+    .portfolio-card-body h3 {
+      font-family: var(--serif);
+      font-size: 1.25rem;
+      color: var(--brown-deep);
+      font-weight: 400;
+      margin-bottom: 0.5rem;
+    }
+    .portfolio-card-body p { font-size: 0.85rem; color: var(--text-light); }
+
+    /* Project Modal */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(32,20,18,0.88);
+      z-index: 2000;
+      display: flex; align-items: center; justify-content: center;
+      padding: 2rem;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--white);
+      max-width: 900px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      transform: translateY(24px);
+      transition: transform 0.4s ease;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-close {
+      position: absolute; top: 1.2rem; right: 1.2rem;
+      background: var(--brown-deep);
+      color: var(--cream);
+      border: none;
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      z-index: 10;
+      transition: background var(--transition);
+    }
+    .modal-close:hover { background: var(--brown-mid); }
+    .modal-hero { aspect-ratio: 16/9; background: var(--beige); overflow: hidden; }
+    .modal-hero img { width: 100%; height: 100%; object-fit: cover; }
+    .modal-body { padding: 2.5rem; }
+    .modal-cat {
+      font-size: 0.72rem; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--gold);
+      font-weight: 500; margin-bottom: 0.8rem;
+    }
+    .modal-body h2 {
+      font-family: var(--serif);
+      font-size: 2rem;
+      color: var(--brown-deep);
+      font-weight: 300;
+      margin-bottom: 1.2rem;
+    }
+    .modal-body p { font-size: 0.92rem; color: var(--text-light); line-height: 1.9; margin-bottom: 1rem; }
+    .modal-details {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--beige);
+    }
+    .modal-detail-label { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--nude); font-weight: 500; margin-bottom: 0.3rem; }
+    .modal-detail-val { font-family: var(--serif); font-size: 1.1rem; color: var(--brown-deep); }
+
+    /* Before/After Slider */
+    .ba-slider {
+      position: relative;
+      overflow: hidden;
+      cursor: ew-resize;
+      user-select: none;
+      margin: 2rem 0 0;
+    }
+    .ba-after { display: block; width: 100%; }
+    .ba-before-wrap {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      width: 50%;
+    }
+    .ba-before { position: absolute; top: 0; left: 0; width: 200%; max-width: none; height: 100%; object-fit: cover; }
+    .ba-handle {
+      position: absolute;
+      top: 0; bottom: 0;
+      left: 50%;
+      width: 3px;
+      background: var(--white);
+      transform: translateX(-50%);
+      z-index: 10;
+      pointer-events: none;
+    }
+    .ba-handle::before, .ba-handle::after {
+      content: '';
+      position: absolute;
+      left: 50%; transform: translateX(-50%);
+      border: 8px solid transparent;
+    }
+    .ba-handle::before { top: 50%; margin-top: -24px; border-bottom-color: var(--white); }
+    .ba-handle::after  { top: 50%; margin-top: 8px;  border-top-color: var(--white); }
+    .ba-knob {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      width: 40px; height: 40px;
+      background: var(--white);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem;
+      color: var(--brown-deep);
+      pointer-events: none;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    }
+
+    /* ─── SERVICES PAGE ─────────────────────────────────── */
+    .services-hero {
+      background: var(--brown-deep);
+      padding: 8rem 0 5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .services-hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .services-hero h1 {
+      font-family: var(--serif);
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      color: var(--cream);
+      font-weight: 300;
+      margin-bottom: 1rem;
+    }
+    .services-hero p { color: rgba(245,239,230,0.65); font-size: 1rem; }
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2px;
+      background: var(--beige);
+    }
+    .service-card {
+      background: var(--white);
+      padding: 3.5rem;
+      transition: background var(--transition);
+    }
+    .service-card:hover { background: var(--linen); }
+    .service-icon {
+      width: 56px; height: 56px;
+      background: var(--cream);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 1.8rem;
+    }
+    .service-card h3 {
+      font-family: var(--serif);
+      font-size: 1.5rem;
+      color: var(--brown-deep);
+      font-weight: 400;
+      margin-bottom: 1rem;
+    }
+    .service-card p { font-size: 0.9rem; color: var(--text-light); line-height: 1.9; margin-bottom: 1.5rem; }
+    .service-price {
+      font-family: var(--serif);
+      font-size: 1.1rem;
+      color: var(--gold);
+      font-style: italic;
+    }
+    .service-features { list-style: none; margin: 1rem 0; }
+    .service-features li {
+      font-size: 0.85rem;
+      color: var(--text-light);
+      padding: 0.4rem 0;
+      border-bottom: 1px solid var(--beige);
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .service-features li::before { content: '—'; color: var(--gold); flex-shrink: 0; }
+
+    /* ─── ABOUT PAGE ────────────────────────────────────── */
+    .about-story {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      min-height: 75vh;
+    }
+    .about-img { background: var(--beige); overflow: hidden; }
+    .about-img img { width: 100%; height: 100%; object-fit: cover; }
+    .about-text {
+      padding: 6rem 5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .about-text h2 {
+      font-family: var(--serif);
+      font-size: clamp(2rem, 3.5vw, 3rem);
+      color: var(--brown-deep);
+      font-weight: 300;
+      margin-bottom: 1.8rem;
+      line-height: 1.25;
+    }
+    .about-text p { font-size: 0.92rem; color: var(--text-light); line-height: 1.95; margin-bottom: 1.2rem; }
+    .about-sig {
+      font-family: var(--serif);
+      font-size: 1.8rem;
+      font-style: italic;
+      color: var(--brown-mid);
+      margin-top: 1.5rem;
+    }
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+    }
+    .team-card { text-align: center; }
+    .team-img {
+      aspect-ratio: 3/4;
+      background: var(--beige);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .team-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+    .team-card:hover .team-img img { transform: scale(1.04); }
+    .team-card h3 { font-family: var(--serif); font-size: 1.2rem; color: var(--brown-deep); font-weight: 400; }
+    .team-card p { font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-top: 0.3rem; }
+
+    /* ─── CONTACT PAGE ──────────────────────────────────── */
+    .contact-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 0;
+      background: var(--white);
+    }
+    .contact-info {
+      background: var(--brown-deep);
+      padding: 5rem 4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+    }
+    .contact-info h2 {
+      font-family: var(--serif);
+      font-size: 2.5rem;
+      color: var(--cream);
+      font-weight: 300;
+      line-height: 1.25;
+    }
+    .contact-info p { font-size: 0.9rem; color: rgba(245,239,230,0.65); line-height: 1.9; }
+    .contact-detail { display: flex; gap: 1rem; align-items: flex-start; }
+    .contact-icon { font-size: 1.2rem; margin-top: 2px; }
+    .contact-detail strong { display: block; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.3rem; font-weight: 500; }
+    .contact-detail span { font-size: 0.88rem; color: rgba(245,239,230,0.75); }
+    .whatsapp-btn {
+      display: flex; align-items: center; gap: 0.8rem;
+      background: #25D366;
+      color: var(--white);
+      padding: 0.9rem 1.8rem;
+      border-radius: 2px;
+      font-size: 0.82rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: var(--sans);
+    }
+    .whatsapp-btn:hover { background: #1ebe5d; transform: translateY(-2px); }
+    .contact-form-wrap { padding: 5rem 4.5rem; }
+    .contact-form-wrap h3 { font-family: var(--serif); font-size: 1.8rem; color: var(--brown-deep); font-weight: 300; margin-bottom: 2.5rem; }
+    .form-group { margin-bottom: 1.8rem; }
+    .form-group label { display: block; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brown-mid); font-weight: 500; margin-bottom: 0.6rem; }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%;
+      background: var(--linen);
+      border: 1px solid var(--beige);
+      padding: 0.85rem 1.1rem;
+      font-size: 0.9rem;
+      color: var(--charcoal);
+      outline: none;
+      transition: border-color var(--transition);
+      border-radius: 2px;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--nude); }
+    .form-group textarea { height: 130px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .form-success {
+      background: #f0faf0;
+      border: 1px solid #c3e6cb;
+      color: #2d7a3a;
+      padding: 1rem 1.5rem;
+      border-radius: 2px;
+      font-size: 0.88rem;
+      margin-top: 1rem;
+    }
+
+    /* ─── AUTH MODAL ────────────────────────────────────── */
+    .auth-modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(32,20,18,0.88);
+      z-index: 3000;
+      display: flex; align-items: center; justify-content: center;
+      padding: 2rem;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    .auth-modal-overlay.open { opacity: 1; pointer-events: all; }
+    .auth-modal {
+      background: var(--white);
+      width: 100%; max-width: 440px;
+      padding: 3rem;
+      position: relative;
+    }
+    .auth-logo {
+      font-family: var(--serif);
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--brown-deep);
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+    .auth-logo span { color: var(--gold); }
+    .auth-subtitle { text-align: center; font-size: 0.82rem; color: var(--text-light); margin-bottom: 2.5rem; }
+    .auth-tabs { display: flex; border-bottom: 1px solid var(--beige); margin-bottom: 2rem; }
+    .auth-tab {
+      flex: 1; padding: 0.7rem;
+      text-align: center;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-light);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all var(--transition);
+    }
+    .auth-tab.active { color: var(--brown-deep); border-color: var(--gold); }
+    .auth-error { background: #fdf0f0; border: 1px solid #f5c2c2; color: #c0392b; padding: 0.8rem 1rem; font-size: 0.84rem; border-radius: 2px; margin-bottom: 1rem; }
+
+    /* ─── ADMIN DASHBOARD ───────────────────────────────── */
+    #admin-page {
+      padding-top: 80px;
+      min-height: 100vh;
+      background: var(--linen);
+    }
+    .admin-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: calc(100vh - 80px);
+    }
+    .admin-sidebar {
+      background: var(--brown-deep);
+      padding: 2rem 0;
+    }
+    .admin-nav-item {
+      display: flex; align-items: center; gap: 0.8rem;
+      padding: 0.9rem 1.8rem;
+      font-size: 0.83rem;
+      letter-spacing: 0.06em;
+      color: rgba(245,239,230,0.65);
+      cursor: pointer;
+      transition: all var(--transition);
+      border-left: 3px solid transparent;
+    }
+    .admin-nav-item:hover, .admin-nav-item.active {
+      background: rgba(255,255,255,0.06);
+      color: var(--cream);
+      border-left-color: var(--gold);
+    }
+    .admin-content { padding: 3rem; }
+    .admin-header { margin-bottom: 2.5rem; }
+    .admin-header h1 { font-family: var(--serif); font-size: 2rem; color: var(--brown-deep); font-weight: 300; }
+    .admin-header p { font-size: 0.88rem; color: var(--text-light); margin-top: 0.3rem; }
+    .admin-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+    .admin-card {
+      background: var(--white);
+      padding: 1.8rem;
+      box-shadow: var(--shadow-card);
+    }
+    .admin-card-num { font-family: var(--serif); font-size: 2.5rem; color: var(--brown-deep); font-weight: 300; line-height: 1; }
+    .admin-card-label { font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-light); margin-top: 0.5rem; }
+    .admin-card-icon { font-size: 1.5rem; margin-bottom: 1rem; }
+    .admin-section { background: var(--white); padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-card); }
+    .admin-section h2 { font-family: var(--serif); font-size: 1.3rem; color: var(--brown-deep); font-weight: 400; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--beige); }
+    .upload-zone {
+      border: 2px dashed var(--beige);
+      padding: 3rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition);
+      border-radius: 4px;
+      background: var(--linen);
+    }
+    .upload-zone:hover { border-color: var(--nude); background: var(--cream); }
+    .upload-zone.dragover { border-color: var(--gold); background: var(--cream); }
+    .upload-zone input[type=file] { display: none; }
+    .upload-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+    .upload-zone p { font-size: 0.88rem; color: var(--text-light); }
+    .upload-zone span { font-size: 0.78rem; color: var(--nude); }
+    .img-preview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 1.5rem; }
+    .img-preview-item { position: relative; aspect-ratio: 4/3; overflow: hidden; background: var(--beige); }
+    .img-preview-item img { width: 100%; height: 100%; object-fit: cover; }
+    .img-preview-remove {
+      position: absolute; top: 6px; right: 6px;
+      background: rgba(62,39,35,0.8);
+      color: var(--cream);
+      border: none;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 0.8rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .admin-table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+    .admin-table th {
+      text-align: left;
+      padding: 0.8rem 1rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-light);
+      border-bottom: 1px solid var(--beige);
+      font-weight: 500;
+    }
+    .admin-table td { padding: 0.9rem 1rem; border-bottom: 1px solid var(--beige); color: var(--charcoal); vertical-align: middle; }
+    .admin-table tr:hover td { background: var(--linen); }
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.7rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+    .badge-living { background: #fef3e2; color: #b07a0a; }
+    .badge-kitchen { background: #e8f5e9; color: #2e7d32; }
+    .badge-bedroom { background: #f3e5f5; color: #7b1fa2; }
+    .badge-office { background: #e3f2fd; color: #1565c0; }
+    .badge-outdoor { background: #e8f5e9; color: #2e7d32; }
+    .action-btns { display: flex; gap: 0.5rem; }
+    .btn-sm {
+      padding: 0.35rem 0.9rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      border: 1px solid var(--beige);
+      background: transparent;
+      color: var(--text-light);
+      cursor: pointer;
+      transition: all var(--transition);
+      border-radius: 2px;
+      font-family: var(--sans);
+    }
+    .btn-sm:hover { background: var(--brown-deep); color: var(--cream); border-color: var(--brown-deep); }
+    .btn-sm.danger:hover { background: #c0392b; border-color: #c0392b; color: var(--white); }
+
+    /* ─── FOOTER ────────────────────────────────────────── */
+    footer {
+      background: var(--charcoal);
+      padding: 4rem 0 2rem;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 3rem;
+    }
+    .footer-brand h3 { font-family: var(--serif); font-size: 1.4rem; color: var(--cream); font-weight: 400; margin-bottom: 1rem; }
+    .footer-brand p { font-size: 0.86rem; color: rgba(245,239,230,0.5); line-height: 1.9; max-width: 280px; }
+    footer h4 { font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); font-weight: 500; margin-bottom: 1.2rem; }
+    footer ul { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+    footer ul li a { font-size: 0.86rem; color: rgba(245,239,230,0.5); transition: color var(--transition); }
+    footer ul li a:hover { color: var(--nude); }
+    .footer-bottom {
+      border-top: 1px solid rgba(245,239,230,0.1);
+      padding-top: 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .footer-bottom p { font-size: 0.8rem; color: rgba(245,239,230,0.35); }
+
+    /* ─── NOTIFICATION ──────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: 2rem; right: 2rem;
+      background: var(--brown-deep);
+      color: var(--cream);
+      padding: 1rem 1.5rem;
+      font-size: 0.88rem;
+      border-left: 3px solid var(--gold);
+      box-shadow: var(--shadow-soft);
+      z-index: 9999;
+      transform: translateX(120%);
+      transition: transform var(--transition);
+    }
+    .toast.show { transform: translateX(0); }
+
+    /* ─── USER BADGE ────────────────────────────────────── */
+    .user-badge {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-size: 0.8rem;
+      color: var(--brown-mid);
+    }
+    .user-avatar {
+      width: 32px; height: 32px;
+      background: var(--brown-deep);
+      color: var(--cream);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--serif);
+      font-size: 0.9rem;
+    }
+
+    /* ─── RESPONSIVE ────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .admin-cards { grid-template-columns: repeat(2, 1fr); }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    }
+    @media (max-width: 900px) {
+      #hero { grid-template-columns: 1fr; }
+      .hero-left { padding: 5rem 2.5rem 3rem; clip-path: none; }
+      .hero-left::after { display: none; }
+      .hero-right { height: 50vw; }
+      .hero-img-grid { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
+      .hero-img-cell:first-child { grid-row: span 1; }
+      .featured-grid { grid-template-columns: 1fr 1fr; }
+      .featured-item:first-child { grid-row: span 1; aspect-ratio: 4/3; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .process-grid { grid-template-columns: repeat(2, 1fr); }
+      .portfolio-grid { grid-template-columns: repeat(2, 1fr); }
+      .services-grid { grid-template-columns: 1fr; }
+      .about-story { grid-template-columns: 1fr; }
+      .about-img { height: 50vw; }
+      .about-text { padding: 3.5rem 2.5rem; }
+      .team-grid { grid-template-columns: repeat(2, 1fr); }
+      .contact-layout { grid-template-columns: 1fr; }
+      .contact-info { padding: 3.5rem 2.5rem; }
+      .contact-form-wrap { padding: 3.5rem 2.5rem; }
+      .admin-layout { grid-template-columns: 1fr; }
+      .admin-sidebar { display: flex; flex-wrap: wrap; gap: 0; }
+      .modal-details { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .nav-links.mobile-open {
+        display: flex; flex-direction: column;
+        position: fixed; top: 72px; left: 0; right: 0;
+        background: var(--linen);
+        padding: 1.5rem 2rem;
+        box-shadow: var(--shadow-soft);
+        gap: 1rem;
+        z-index: 999;
+      }
+      .hamburger { display: flex; }
+      .featured-grid { grid-template-columns: 1fr; }
+      .featured-item:first-child { aspect-ratio: 4/3; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .process-grid { grid-template-columns: 1fr; }
+      .portfolio-grid { grid-template-columns: 1fr; }
+      .team-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .admin-cards { grid-template-columns: 1fr 1fr; }
+      .img-preview-grid { grid-template-columns: repeat(2, 1fr); }
+      .footer-grid { grid-template-columns: 1fr; }
+      .hero-right { display: none; }
+      .hero-left { min-height: calc(100vh - 80px); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ NAVIGATION ═══════════ -->
+<nav id="nav">
+  <div class="nav-logo">Art<span>Space</span></div>
+  <div class="nav-links" id="navLinks">
+    <a href="#" onclick="showPage('home')" class="active" id="nav-home">Home</a>
+    <a href="#" onclick="showPage('portfolio')" id="nav-portfolio">Portfolio</a>
+    <a href="#" onclick="showPage('services')" id="nav-services">Services</a>
+    <a href="#" onclick="showPage('about')" id="nav-about">About</a>
+    <a href="#" onclick="showPage('contact')" id="nav-contact">Contact</a>
+    <span id="nav-auth-area"></span>
+  </div>
+  <div class="hamburger" id="hamburger" onclick="toggleMobile()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- ═══════════ TOAST ═══════════ -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════ PROJECT MODAL ═══════════ -->
+<div class="modal-overlay" id="projectModal" onclick="closeModal(event)">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<!-- ═══════════ AUTH MODAL ═══════════ -->
+<div class="auth-modal-overlay" id="authModal" onclick="closeAuthModal(event)">
+  <div class="auth-modal">
+    <button class="modal-close" onclick="closeAuthModalBtn()">✕</button>
+    <div class="auth-logo">Art<span>Space</span></div>
+    <p class="auth-subtitle">Access your creative space</p>
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign In</div>
+      <div class="auth-tab" id="tab-register" onclick="switchTab('register')">Create Account</div>
+    </div>
+    <div id="auth-error" class="auth-error hidden"></div>
+
+    <!-- Login Form -->
+    <div id="form-login">
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="login-email" placeholder="your@email.com" autocomplete="email"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <button class="btn-dark" style="width:100%;margin-top:0.5rem" onclick="handleLogin()">Sign In</button>
+      <p style="font-size:0.78rem;color:var(--text-light);text-align:center;margin-top:1rem">
+        Demo: admin@artspace.com / admin123 &nbsp;|&nbsp; user@artspace.com / user123
+      </p>
+    </div>
+
+    <!-- Register Form -->
+    <div id="form-register" class="hidden">
+      <div class="form-row">
+        <div class="form-group">
+          <label>First Name</label>
+          <input type="text" id="reg-fname" placeholder="Jane"/>
+        </div>
+        <div class="form-group">
+          <label>Last Name</label>
+          <input type="text" id="reg-lname" placeholder="Doe"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="reg-email" placeholder="your@email.com"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="reg-password" placeholder="Min. 8 characters"/>
+      </div>
+      <button class="btn-dark" style="width:100%;margin-top:0.5rem" onclick="handleRegister()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     HOME PAGE
+════════════════════════════════════ -->
+<div class="page active" id="page-home">
+
+  <!-- Hero -->
+  <section id="hero">
+    <div class="hero-left">
+      <p class="hero-eyebrow">Premium Interior Design Studio</p>
+      <h1 class="hero-title">Where <em>Art</em><br>Meets<br>Elegance</h1>
+      <p class="hero-desc">We craft living spaces that transcend the ordinary — transforming your environment into a curated expression of beauty, function, and timeless design.</p>
+      <div class="hero-btns">
+        <button class="btn-primary" onclick="showPage('contact')">Book Consultation</button>
+        <button class="btn-outline" onclick="showPage('portfolio')">View Portfolio</button>
+      </div>
+      <div class="hero-scroll">
+        <div class="scroll-line"></div>
+        <span>Scroll</span>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="hero-img-grid">
+        <div class="hero-img-cell">
+          <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&auto=format" alt="Living room" loading="lazy"/>
+        </div>
+        <div class="hero-img-cell">
+          <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&auto=format" alt="Kitchen" loading="lazy"/>
+        </div>
+        <div class="hero-img-cell">
+          <img src="https://images.unsplash.com/photo-1540518614846-7eded433c457?w=400&auto=format" alt="Bedroom" loading="lazy"/>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Projects -->
+  <section class="section" style="background:var(--white)">
+    <div class="container">
+      <div class="section-header fade-in">
+        <p class="section-eyebrow">Our Work</p>
+        <h2 class="section-title serif">Featured Projects</h2>
+        <div class="section-line"></div>
+      </div>
+      <div class="featured-grid fade-in" id="featured-grid"></div>
+      <div style="text-align:center;margin-top:3rem" class="fade-in">
+        <button class="btn-dark" onclick="showPage('portfolio')">View All Projects</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <div class="stats-banner">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="fade-in"><div class="stat-num">150+</div><div class="stat-label">Projects Completed</div></div>
+        <div class="fade-in"><div class="stat-num">12</div><div class="stat-label">Years of Excellence</div></div>
+        <div class="fade-in"><div class="stat-num">98%</div><div class="stat-label">Client Satisfaction</div></div>
+        <div class="fade-in"><div class="stat-num">8</div><div class="stat-label">Design Awards</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Process -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header fade-in">
+        <p class="section-eyebrow">How We Work</p>
+        <h2 class="section-title serif">Our Process</h2>
+        <div class="section-line"></div>
+      </div>
+      <div class="process-grid">
+        <div class="process-step fade-in">
+          <div class="step-num">01</div>
+          <h3>Discovery</h3>
+          <p>We listen deeply to understand your vision, lifestyle, and aesthetic aspirations before a single line is drawn.</p>
+        </div>
+        <div class="process-step fade-in">
+          <div class="step-num">02</div>
+          <h3>Concept</h3>
+          <p>Our designers develop mood boards, spatial layouts, and material palettes tailored uniquely to your space.</p>
+        </div>
+        <div class="process-step fade-in">
+          <div class="step-num">03</div>
+          <h3>Design</h3>
+          <p>Full 3D visualizations and technical drawings bring your future space to life before construction begins.</p>
+        </div>
+        <div class="process-step fade-in">
+          <div class="step-num">04</div>
+          <h3>Realization</h3>
+          <p>We oversee every detail of execution, ensuring flawless delivery of the space you've envisioned.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonial -->
+  <div class="testimonial-section">
+    <div class="container">
+      <div class="fade-in">
+        <p style="font-size:3rem;color:var(--gold);font-family:var(--serif);margin-bottom:1rem;line-height:1">"</p>
+        <p class="testimonial-quote">ArtSpace transformed our penthouse into something beyond imagination. Every detail speaks to a profound understanding of beauty and how we actually live.</p>
+        <p class="testimonial-author">— Amara Osei, Westlands, Nairobi</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-banner">
+    <div class="container fade-in">
+      <h2 class="serif">Ready to Transform Your Space?</h2>
+      <p>Schedule a complimentary consultation and let's create something extraordinary together.</p>
+      <button class="btn-dark" onclick="showPage('contact')">Begin Your Journey</button>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h3 class="serif">ArtSpace</h3>
+          <p>Where Art Meets Elegance. Premium interior design studio crafting spaces of timeless beauty.</p>
+        </div>
+        <div>
+          <h4>Navigate</h4>
+          <ul>
+            <li><a href="#" onclick="showPage('home')">Home</a></li>
+            <li><a href="#" onclick="showPage('portfolio')">Portfolio</a></li>
+            <li><a href="#" onclick="showPage('services')">Services</a></li>
+            <li><a href="#" onclick="showPage('about')">About</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Services</h4>
+          <ul>
+            <li><a href="#">Consultation</a></li>
+            <li><a href="#">Space Planning</a></li>
+            <li><a href="#">3D Visualization</a></li>
+            <li><a href="#">Full Design</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Connect</h4>
+          <ul>
+            <li><a href="#">Instagram</a></li>
+            <li><a href="#">Pinterest</a></li>
+            <li><a href="#">Houzz</a></li>
+            <li><a href="#" onclick="showPage('contact')">Contact Us</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 ArtSpace Interior Design. All rights reserved.</p>
+        <p>Privacy Policy · Terms of Service</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ═══════════════════════════════════
+     PORTFOLIO PAGE
+════════════════════════════════════ -->
+<div class="page" id="page-portfolio">
+  <section style="padding:5rem 0 2rem;background:var(--cream);">
+    <div class="container" style="text-align:center">
+      <p class="section-eyebrow">Our Portfolio</p>
+      <h1 class="section-title serif" style="font-size:clamp(2.2rem,4vw,3.5rem)">Curated Spaces</h1>
+      <div class="section-line"></div>
+    </div>
+  </section>
+  <section class="section" style="background:var(--white);padding-top:3rem">
+    <div class="container">
+      <div class="portfolio-filters fade-in" id="portfolio-filters"></div>
+      <div class="portfolio-grid fade-in" id="portfolio-grid"></div>
+    </div>
+  </section>
+  <footer>
+    <div class="container">
+      <div class="footer-bottom">
+        <p>© 2025 ArtSpace Interior Design. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ═══════════════════════════════════
+     SERVICES PAGE
+════════════════════════════════════ -->
+<div class="page" id="page-services">
+  <div class="services-hero">
+    <div class="container fade-in">
+      <p class="section-eyebrow" style="margin-bottom:1rem">What We Offer</p>
+      <h1>Our Services</h1>
+      <p>Comprehensive design solutions crafted for discerning clients</p>
+    </div>
+  </div>
+  <div class="services-grid" id="services-grid"></div>
+  <section class="cta-banner">
+    <div class="container fade-in">
+      <h2 class="serif">Start with a Free Consultation</h2>
+      <p>Every great space begins with a conversation.</p>
+      <button class="btn-dark" onclick="showPage('contact')">Book Now</button>
+    </div>
+  </section>
+  <footer>
+    <div class="container">
+      <div class="footer-bottom">
+        <p>© 2025 ArtSpace Interior Design. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ═══════════════════════════════════
+     ABOUT PAGE
+════════════════════════════════════ -->
+<div class="page" id="page-about">
+  <div class="about-story">
+    <div class="about-img">
+      <img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800&auto=format" alt="Designer at work" loading="lazy" style="width:100%;height:100%;object-fit:cover"/>
+    </div>
+    <div class="about-text fade-in">
+      <p class="section-eyebrow">Our Story</p>
+      <h2>Designing Spaces That<br><em style="font-style:italic">Breathe Life</em></h2>
+      <p>ArtSpace was born from a simple belief: that the spaces we inhabit shape who we become. Founded in 2012 in Nairobi, we set out to bring world-class interior design to East Africa — spaces that honour both international aesthetics and the rich warmth of African heritage.</p>
+      <p>Over the past decade, we've had the privilege of transforming over 150 homes, offices, and hospitality spaces. Each project is approached as a unique canvas, with no two designs alike.</p>
+      <p>Our philosophy is simple: listen deeply, design boldly, and deliver spaces that clients fall in love with — not just on handover day, but every single day thereafter.</p>
+      <div class="about-sig">Sophia Mwangi</div>
+      <p style="font-size:0.78rem;color:var(--nude);letter-spacing:0.1em;text-transform:uppercase;margin-top:0.2rem">Founder & Creative Director</p>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-header fade-in">
+        <p class="section-eyebrow">Our Team</p>
+        <h2 class="section-title serif">Meet the Designers</h2>
+        <div class="section-line"></div>
+      </div>
+      <div class="team-grid">
+        <div class="team-card fade-in">
+          <div class="team-img">
+            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format" alt="Sophia" loading="lazy"/>
+          </div>
+          <h3 class="serif">Sophia Mwangi</h3>
+          <p>Founder & Creative Director</p>
+        </div>
+        <div class="team-card fade-in">
+          <div class="team-img">
+            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&auto=format" alt="David" loading="lazy"/>
+          </div>
+          <h3 class="serif">David Kamau</h3>
+          <p>Senior Interior Designer</p>
+        </div>
+        <div class="team-card fade-in">
+          <div class="team-img">
+            <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&auto=format" alt="Amina" loading="lazy"/>
+          </div>
+          <h3 class="serif">Amina Hassan</h3>
+          <p>3D Visualization Specialist</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <footer>
+    <div class="container">
+      <div class="footer-bottom">
+        <p>© 2025 ArtSpace Interior Design. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ═══════════════════════════════════
+     CONTACT PAGE
+════════════════════════════════════ -->
+<div class="page" id="page-contact">
+  <div class="contact-layout">
+    <div class="contact-info">
+      <div>
+        <p class="section-eyebrow" style="margin-bottom:1rem">Get In Touch</p>
+        <h2 class="serif">Let's Create<br>Something<br>Beautiful</h2>
+      </div>
+      <p>We'd love to hear about your project. Whether you're starting from scratch or reimagining an existing space, we're here to help.</p>
+      <div class="contact-detail">
+        <span class="contact-icon">📍</span>
+        <div>
+          <strong>Visit Us</strong>
+          <span>Westlands Square, 4th Floor<br>Nairobi, Kenya</span>
+        </div>
+      </div>
+      <div class="contact-detail">
+        <span class="contact-icon">📞</span>
+        <div>
+          <strong>Call Us</strong>
+          <span>+254 700 123 456</span>
+        </div>
+      </div>
+      <div class="contact-detail">
+        <span class="contact-icon">✉️</span>
+        <div>
+          <strong>Email Us</strong>
+          <span>hello@artspace.co.ke</span>
+        </div>
+      </div>
+      <button class="whatsapp-btn" onclick="openWhatsApp()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.507 3.934 1.395 5.608L0 24l6.562-1.395C8.236 23.493 10.066 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.85 0-3.574-.487-5.062-1.338l-.362-.214-3.752.984.984-3.655-.234-.375C2.487 15.59 2 13.85 2 12 2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        Chat on WhatsApp
+      </button>
+    </div>
+    <div class="contact-form-wrap">
+      <h3 class="serif">Send Us a Message</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>First Name</label>
+          <input type="text" id="c-fname" placeholder="Jane"/>
+        </div>
+        <div class="form-group">
+          <label>Last Name</label>
+          <input type="text" id="c-lname" placeholder="Doe"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="c-email" placeholder="your@email.com"/>
+      </div>
+      <div class="form-group">
+        <label>Budget Range</label>
+        <select id="c-budget">
+          <option value="">Select budget range</option>
+          <option>Under KES 500,000</option>
+          <option>KES 500K – 1M</option>
+          <option>KES 1M – 3M</option>
+          <option>KES 3M – 5M</option>
+          <option>KES 5M+</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Your Message</label>
+        <textarea id="c-message" placeholder="Tell us about your project, space size, and vision..."></textarea>
+      </div>
+      <button class="btn-dark" onclick="submitContact()">Send Message</button>
+      <div id="contact-success" class="form-success hidden">✓ Message sent! We'll be in touch within 24 hours.</div>
+    </div>
+  </div>
+  <footer>
+    <div class="container">
+      <div class="footer-bottom">
+        <p>© 2025 ArtSpace Interior Design. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ═══════════════════════════════════
+     ADMIN DASHBOARD
+════════════════════════════════════ -->
+<div class="page" id="page-admin">
+  <div style="background:var(--brown-deep);padding:1.5rem 2.5rem;display:flex;align-items:center;justify-content:space-between">
+    <span style="font-family:var(--serif);color:var(--cream);font-size:1.1rem">ArtSpace Admin</span>
+    <div style="display:flex;gap:1rem;align-items:center">
+      <span style="font-size:0.8rem;color:rgba(245,239,230,0.6)">Admin Panel</span>
+      <button onclick="showPage('home')" class="btn-sm" style="color:var(--cream);border-color:rgba(255,255,255,0.2)">← Back to Site</button>
+    </div>
+  </div>
+  <div class="admin-layout">
+    <div class="admin-sidebar">
+      <div class="admin-nav-item active" onclick="showAdminSection('dashboard')">📊 Dashboard</div>
+      <div class="admin-nav-item" onclick="showAdminSection('projects')">🖼 Projects</div>
+      <div class="admin-nav-item" onclick="showAdminSection('upload')">⬆️ Upload</div>
+      <div class="admin-nav-item" onclick="showAdminSection('messages')">✉️ Messages</div>
+    </div>
+    <div class="admin-content" id="admin-content-area">
+      <!-- Injected dynamically -->
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════
+   DATA STORE
+══════════════════════════════════════════════ */
+// Simulated "database" (in production: MongoDB/MySQL via REST API)
+const DB = {
+  users: [
+    { id: 1, email: 'admin@artspace.com', password: 'admin123', role: 'admin', name: 'Sophia Mwangi' },
+    { id: 2, email: 'user@artspace.com',  password: 'user123',  role: 'user',  name: 'John Doe' }
+  ],
+  projects: [
+    {
+      id: 1, title: 'The Westlands Penthouse', category: 'Living Room',
+      description: 'A sweeping 4-bedroom penthouse transformed into an oasis of warmth and light, blending Italian marble with bespoke African joinery. The client requested a space that felt both globally refined and deeply rooted in Kenyan character.',
+      year: '2024', area: '420 m²', location: 'Westlands, Nairobi',
+      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&auto=format',
+      beforeImage: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&auto=format',
+      featured: true
+    },
+    {
+      id: 2, title: 'Lavington Kitchen Retreat', category: 'Kitchen',
+      description: 'A complete kitchen transformation featuring custom cabinetry in a warm walnut finish, Calacatta marble surfaces, and professional-grade appliances. The island became the heart of family life.',
+      year: '2024', area: '85 m²', location: 'Lavington, Nairobi',
+      image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&auto=format',
+      beforeImage: 'https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=800&auto=format',
+      featured: true
+    },
+    {
+      id: 3, title: 'Karen Sanctuary Bedroom', category: 'Bedroom',
+      description: 'A master bedroom designed as a true retreat — layered textures of linen, cashmere, and hand-embroidered cushions against a backdrop of warm, earthy hues. Bespoke joinery conceals all functional elements.',
+      year: '2023', area: '65 m²', location: 'Karen, Nairobi',
+      image: 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800&auto=format',
+      beforeImage: 'https://images.unsplash.com/photo-1556742044-3c52d6e88c62?w=800&auto=format',
+      featured: true
+    },
+    {
+      id: 4, title: 'Kilimani Creative Office', category: 'Office',
+      description: 'A modern creative agency space that balances productivity with inspiration. Open collaboration zones meet private focus pods, all wrapped in a palette of forest green and natural timber.',
+      year: '2023', area: '320 m²', location: 'Kilimani, Nairobi',
+      image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&auto=format',
+      beforeImage: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=800&auto=format',
+      featured: false
+    },
+    {
+      id: 5, title: 'Runda Dining Experience', category: 'Living Room',
+      description: 'An expansive open-plan living and dining area designed for effortless entertaining. Statement lighting, bespoke dining table for 14, and seamless indoor-outdoor flow.',
+      year: '2022', area: '180 m²', location: 'Runda, Nairobi',
+      image: 'https://images.unsplash.com/photo-1617104678098-de229db51175?w=800&auto=format',
+      beforeImage: 'https://images.unsplash.com/photo-1567016432779-094069958ea5?w=800&auto=format',
+      featured: false
+    },
+    {
+      id: 6, title: 'Muthaiga Spa Bathroom', category: 'Bedroom',
+      description: 'A hotel-grade bathroom sanctuary with freestanding stone tub, rain shower, and floor-to-ceiling book-matched marble panels. Complete sensory luxury.',
+      year: '2022', area: '28 m²', location: 'Muthaiga, Nairobi',
+      image: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&auto=format',
+      beforeImage: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&auto=format',
+      featured: false
+    }
+  ],
+  messages: [
+    { id: 1, name: 'Amara Osei', email: 'amara@email.com', budget: 'KES 3M – 5M', message: 'Interested in full home redesign.', date: '2025-07-10' },
+    { id: 2, name: 'James Kariuki', email: 'james@corp.co.ke', budget: 'KES 5M+', message: 'Office renovation project.', date: '2025-07-09' }
+  ]
+};
+
+// Session state
+let currentUser = null;
+let loginAttempts = {};
+const MAX_ATTEMPTS = 5;
+
+/* ══════════════════════════════════════════════
+   SECURITY HELPERS
+══════════════════════════════════════════════ */
+// XSS sanitization
+function sanitize(str) {
+  const div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
+}
+
+// Input validation
+function validateEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function validateLength(str, min, max) {
+  return str.length >= min && str.length <= (max || Infinity);
+}
+
+// Rate limiting (client-side demo; real implementation in Express middleware)
+function checkRateLimit(email) {
+  const now = Date.now();
+  if (!loginAttempts[email]) loginAttempts[email] = { count: 0, firstAttempt: now };
+  const entry = loginAttempts[email];
+  if (now - entry.firstAttempt > 15 * 60 * 1000) {
+    loginAttempts[email] = { count: 1, firstAttempt: now };
+    return true;
+  }
+  entry.count++;
+  return entry.count <= MAX_ATTEMPTS;
+}
+
+// CSRF token (demo)
+function generateCSRF() { return Math.random().toString(36).substr(2); }
+const csrfToken = generateCSRF();
+
+/* ══════════════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════════════ */
+function showPage(page) {
+  // Admin check
+  if (page === 'admin') {
+    if (!currentUser || currentUser.role !== 'admin') {
+      openAuthModal(); return;
+    }
+  }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  const el = document.getElementById('page-' + page) || document.getElementById('admin-page');
+  if (el) { el.classList.add('active'); }
+  const navEl = document.getElementById('nav-' + page);
+  if (navEl) navEl.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Close mobile
+  document.getElementById('navLinks').classList.remove('mobile-open');
+  // Init page content
+  setTimeout(() => {
+    initPageContent(page);
+    observeFadeIns();
+  }, 50);
+}
+
+function toggleMobile() {
+  document.getElementById('navLinks').classList.toggle('mobile-open');
+}
+
+// Scroll effect on nav
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 60);
+});
+
+/* ══════════════════════════════════════════════
+   CONTENT RENDERING
+══════════════════════════════════════════════ */
+function initPageContent(page) {
+  if (page === 'home') renderFeatured();
+  if (page === 'portfolio') renderPortfolio();
+  if (page === 'services') renderServices();
+  if (page === 'admin') renderAdminDashboard();
+}
+
+function renderFeatured() {
+  const grid = document.getElementById('featured-grid');
+  if (!grid) return;
+  const featured = DB.projects.filter(p => p.featured);
+  grid.innerHTML = featured.map((p, i) => `
+    <div class="featured-item" onclick="openProject(${p.id})">
+      <img src="${sanitize(p.image)}" alt="${sanitize(p.title)}" loading="lazy"/>
+      <div class="featured-overlay">
+        <div class="featured-info">
+          <h3>${sanitize(p.title)}</h3>
+          <p>${sanitize(p.category)} · ${sanitize(p.year)}</p>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderPortfolio(filter = 'All') {
+  // Filters
+  const cats = ['All', ...new Set(DB.projects.map(p => p.category))];
+  const filtersEl = document.getElementById('portfolio-filters');
+  if (filtersEl) {
+    filtersEl.innerHTML = cats.map(c => `
+      <button class="filter-btn ${c === filter ? 'active' : ''}" onclick="renderPortfolio('${c}')">${c}</button>
+    `).join('');
+  }
+
+  const grid = document.getElementById('portfolio-grid');
+  if (!grid) return;
+  const filtered = filter === 'All' ? DB.projects : DB.projects.filter(p => p.category === filter);
+  grid.innerHTML = filtered.map(p => `
+    <div class="portfolio-card fade-in" onclick="openProject(${p.id})">
+      <div class="portfolio-card-img">
+        <img src="${sanitize(p.image)}" alt="${sanitize(p.title)}" loading="lazy"/>
+      </div>
+      <div class="portfolio-card-body">
+        <p class="portfolio-cat">${sanitize(p.category)} · ${sanitize(p.location)}</p>
+        <h3>${sanitize(p.title)}</h3>
+        <p>${sanitize(p.description.substring(0,90))}…</p>
+      </div>
+    </div>
+  `).join('');
+  observeFadeIns();
+}
+
+const SERVICES_DATA = [
+  { icon: '💬', title: 'Initial Consultation', price: 'From KES 15,000', desc: 'A 90-minute deep-dive session where we explore your vision, lifestyle, and aspirations. We walk your space together and establish a shared design language.', features: ['Space assessment', 'Style discovery session', 'Preliminary concept brief', 'Budget framework'] },
+  { icon: '📐', title: 'Space Planning', price: 'From KES 45,000', desc: 'Precision floor plans and spatial layouts that maximize flow, function, and beauty. Every square metre is considered, nothing wasted.', features: ['Measured drawings', '2D floor plans', 'Furniture layout options', 'Traffic flow optimization'] },
+  { icon: '🎨', title: 'Full Interior Design', price: 'From KES 150,000', desc: 'Our comprehensive service — from concept through to final styling. We handle every detail so you can simply arrive to your transformed space.', features: ['Concept development', 'Material & finish selection', 'Furniture procurement', 'Project management', 'Styling & accessories'] },
+  { icon: '🖥', title: '3D Visualization', price: 'From KES 60,000', desc: 'Photorealistic 3D renders that let you walk through your future space before a single piece of furniture is ordered. No surprises, only delight.', features: ['Photorealistic renders', 'Virtual walkthrough', 'Multiple viewpoints', '2 revision rounds'] },
+  { icon: '🛋', title: 'Furniture & Procurement', price: 'From KES 30,000', desc: 'Access our curated network of local craftsmen and international suppliers. We source pieces that are beautiful, durable, and fairly priced.', features: ['Supplier access', 'Custom furniture briefs', 'Quality control', 'White-glove delivery'] },
+  { icon: '🌿', title: 'Styling & Refresh', price: 'From KES 25,000', desc: 'Sometimes a space just needs a curator\'s eye. We rearrange, accessorise, and breathe new life into your existing rooms — no renovation required.', features: ['Art curation', 'Textile refresh', 'Plant styling', 'Lighting assessment'] }
+];
+
+const catBadge = c => {
+  const m = { 'Living Room':'badge-living','Kitchen':'badge-kitchen','Bedroom':'badge-bedroom','Office':'badge-office','Outdoor':'badge-outdoor' };
+  return m[c] || 'badge-living';
+};
+
+function renderServices() {
+  const grid = document.getElementById('services-grid');
+  if (!grid || grid.children.length > 0) return;
+  grid.innerHTML = SERVICES_DATA.map(s => `
+    <div class="service-card fade-in">
+      <div class="service-icon">${s.icon}</div>
+      <h3>${sanitize(s.title)}</h3>
+      <p>${sanitize(s.desc)}</p>
+      <ul class="service-features">
+        ${s.features.map(f => `<li>${sanitize(f)}</li>`).join('')}
+      </ul>
+      <p class="service-price">${sanitize(s.price)}</p>
+    </div>
+  `).join('');
+  observeFadeIns();
+}
+
+/* ══════════════════════════════════════════════
+   PROJECT MODAL
+══════════════════════════════════════════════ */
+function openProject(id) {
+  const p = DB.projects.find(x => x.id === id);
+  if (!p) return;
+  const canEdit = currentUser && currentUser.role === 'admin';
+  const modal = document.getElementById('modalContent');
+  modal.innerHTML = `
+    <button class="modal-close" onclick="closeProjectModal()">✕</button>
+    <div class="modal-hero">
+      <img src="${sanitize(p.image)}" alt="${sanitize(p.title)}" loading="lazy"/>
+    </div>
+    <div class="modal-body">
+      <p class="modal-cat">${sanitize(p.category)} · ${sanitize(p.location)}</p>
+      <h2>${sanitize(p.title)}</h2>
+      <p>${sanitize(p.description)}</p>
+      <div class="modal-details">
+        <div><p class="modal-detail-label">Year</p><p class="modal-detail-val">${sanitize(p.year)}</p></div>
+        <div><p class="modal-detail-label">Area</p><p class="modal-detail-val">${sanitize(p.area)}</p></div>
+        <div><p class="modal-detail-label">Location</p><p class="modal-detail-val">${sanitize(p.location)}</p></div>
+      </div>
+      <!-- Before / After Slider -->
+      <div style="margin-top:2rem">
+        <p style="font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:0.8rem">Before / After</p>
+        <div class="ba-slider" id="baSlider">
+          <img class="ba-after" src="${sanitize(p.image)}" alt="After"/>
+          <div class="ba-before-wrap" id="baWrap">
+            <img class="ba-before" src="${sanitize(p.beforeImage)}" alt="Before"/>
+          </div>
+          <div class="ba-handle" id="baHandle"><div class="ba-knob">⟺</div></div>
+        </div>
+      </div>
+      ${canEdit ? `<div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--beige);display:flex;gap:1rem">
+        <button class="btn-sm" onclick="adminEditProject(${p.id})">Edit Project</button>
+        <button class="btn-sm danger" onclick="adminDeleteProject(${p.id})">Delete Project</button>
+      </div>` : ''}
+    </div>
+  `;
+  document.getElementById('projectModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  initBASlider();
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('projectModal')) closeProjectModal();
+}
+function closeProjectModal() {
+  document.getElementById('projectModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* ── Before/After Slider ── */
+function initBASlider() {
+  const slider = document.getElementById('baSlider');
+  const wrap   = document.getElementById('baWrap');
+  const handle = document.getElementById('baHandle');
+  if (!slider) return;
+
+  function move(x) {
+    const rect = slider.getBoundingClientRect();
+    let pct = Math.max(0, Math.min(1, (x - rect.left) / rect.width));
+    wrap.style.width = (pct * 100) + '%';
+    handle.style.left = (pct * 100) + '%';
+  }
+
+  slider.addEventListener('mousedown', e => {
+    move(e.clientX);
+    const mm = e2 => move(e2.clientX);
+    const mu = () => { window.removeEventListener('mousemove', mm); window.removeEventListener('mouseup', mu); };
+    window.addEventListener('mousemove', mm);
+    window.addEventListener('mouseup', mu);
+  });
+  slider.addEventListener('touchstart', e => {
+    const tm = e2 => move(e2.touches[0].clientX);
+    const te = () => { window.removeEventListener('touchmove', tm); window.removeEventListener('touchend', te); };
+    window.addEventListener('touchmove', tm);
+    window.addEventListener('touchend', te);
+  }, { passive: true });
+}
+
+/* ══════════════════════════════════════════════
+   AUTHENTICATION
+══════════════════════════════════════════════ */
+function openAuthModal() {
+  document.getElementById('authModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeAuthModal(e) {
+  if (e.target === document.getElementById('authModal')) closeAuthModalBtn();
+}
+function closeAuthModalBtn() {
+  document.getElementById('authModal').classList.remove('open');
+  document.body.style.overflow = '';
+  clearAuthError();
+}
+function switchTab(tab) {
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  document.getElementById('form-login').classList.toggle('hidden', tab !== 'login');
+  document.getElementById('form-register').classList.toggle('hidden', tab !== 'register');
+  clearAuthError();
+}
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = sanitize(msg);
+  el.classList.remove('hidden');
+}
+function clearAuthError() { document.getElementById('auth-error').classList.add('hidden'); }
+
+function handleLogin() {
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('login-password').value;
+  clearAuthError();
+
+  // Validation (XSS + format)
+  if (!validateEmail(email)) { showAuthError('Please enter a valid email address.'); return; }
+  if (!validateLength(pass, 6)) { showAuthError('Password must be at least 6 characters.'); return; }
+
+  // Rate limiting
+  if (!checkRateLimit(email)) {
+    showAuthError('Too many login attempts. Please try again in 15 minutes.'); return;
+  }
+
+  // Auth check (simulating bcrypt compare; real: POST /api/auth/login)
+  const user = DB.users.find(u => u.email === email && u.password === pass);
+  if (!user) { showAuthError('Invalid email or password.'); return; }
+
+  // Session
+  currentUser = user;
+  closeAuthModalBtn();
+  updateNavAuth();
+  showToast(`Welcome back, ${user.name}!`);
+  if (user.role === 'admin') showPage('admin');
+}
+
+function handleRegister() {
+  const fname = document.getElementById('reg-fname').value.trim();
+  const lname = document.getElementById('reg-lname').value.trim();
+  const email = document.getElementById('reg-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('reg-password').value;
+  clearAuthError();
+
+  if (!validateLength(fname, 2, 50)) { showAuthError('Please enter your first name.'); return; }
+  if (!validateEmail(email)) { showAuthError('Please enter a valid email address.'); return; }
+  if (!validateLength(pass, 8)) { showAuthError('Password must be at least 8 characters.'); return; }
+  if (DB.users.find(u => u.email === email)) { showAuthError('This email is already registered.'); return; }
+
+  const newUser = { id: Date.now(), email, password: pass, role: 'user', name: fname + ' ' + lname };
+  DB.users.push(newUser);
+  currentUser = newUser;
+  closeAuthModalBtn();
+  updateNavAuth();
+  showToast(`Account created! Welcome, ${fname}.`);
+}
+
+function logout() {
+  currentUser = null;
+  updateNavAuth();
+  showPage('home');
+  showToast('You have been signed out.');
+}
+
+function updateNavAuth() {
+  const area = document.getElementById('nav-auth-area');
+  if (currentUser) {
+    area.innerHTML = `
+      <div class="user-badge">
+        <div class="user-avatar">${currentUser.name[0]}</div>
+        ${currentUser.role === 'admin' ? `<a href="#" onclick="showPage('admin')" style="font-size:0.78rem;color:var(--brown-mid)">Dashboard</a>` : ''}
+        <a href="#" onclick="logout()" style="font-size:0.78rem;color:var(--text-light)">Sign Out</a>
+      </div>`;
+  } else {
+    area.innerHTML = `<a href="#" class="nav-cta" onclick="openAuthModal()">Sign In</a>`;
+  }
+}
+
+/* ══════════════════════════════════════════════
+   ADMIN DASHBOARD
+══════════════════════════════════════════════ */
+let currentAdminSection = 'dashboard';
+let uploadedFiles = [];
+
+function showAdminSection(section) {
+  currentAdminSection = section;
+  document.querySelectorAll('.admin-nav-item').forEach((el, i) => {
+    const sections = ['dashboard','projects','upload','messages'];
+    el.classList.toggle('active', sections[i] === section);
+  });
+  renderAdminContent(section);
+}
+
+function renderAdminDashboard() { renderAdminContent('dashboard'); }
+
+function renderAdminContent(section) {
+  const el = document.getElementById('admin-content-area');
+  if (!el) return;
+  if (section === 'dashboard') {
+    el.innerHTML = `
+      <div class="admin-header">
+        <h1>Dashboard</h1>
+        <p>Welcome back, ${sanitize(currentUser?.name || 'Admin')}. Here's your studio overview.</p>
+      </div>
+      <div class="admin-cards">
+        <div class="admin-card"><div class="admin-card-icon">🖼</div><div class="admin-card-num">${DB.projects.length}</div><div class="admin-card-label">Total Projects</div></div>
+        <div class="admin-card"><div class="admin-card-icon">✉️</div><div class="admin-card-num">${DB.messages.length}</div><div class="admin-card-label">Messages</div></div>
+        <div class="admin-card"><div class="admin-card-icon">👤</div><div class="admin-card-num">${DB.users.length}</div><div class="admin-card-label">Users</div></div>
+        <div class="admin-card"><div class="admin-card-icon">⭐</div><div class="admin-card-num">${DB.projects.filter(p=>p.featured).length}</div><div class="admin-card-label">Featured</div></div>
+      </div>
+      <div class="admin-section">
+        <h2>Recent Projects</h2>
+        ${renderProjectsTable(DB.projects.slice(0,4))}
+      </div>
+    `;
+  } else if (section === 'projects') {
+    el.innerHTML = `
+      <div class="admin-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+        <div><h1>Projects</h1><p>Manage your portfolio content.</p></div>
+        <button class="btn-dark" onclick="showAdminSection('upload')">+ Add New Project</button>
+      </div>
+      <div class="admin-section">
+        <h2>All Projects</h2>
+        ${renderProjectsTable(DB.projects)}
+      </div>
+    `;
+  } else if (section === 'upload') {
+    el.innerHTML = `
+      <div class="admin-header"><h1>Upload Project</h1><p>Add a new project to your portfolio.</p></div>
+      <div class="admin-section">
+        <h2>Project Details</h2>
+        <div class="form-row">
+          <div class="form-group"><label>Project Title</label><input type="text" id="a-title" placeholder="The Westlands Penthouse"/></div>
+          <div class="form-group"><label>Category</label>
+            <select id="a-cat"><option>Living Room</option><option>Kitchen</option><option>Bedroom</option><option>Office</option><option>Outdoor</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Location</label><input type="text" id="a-loc" placeholder="Westlands, Nairobi"/></div>
+          <div class="form-group"><label>Area</label><input type="text" id="a-area" placeholder="250 m²"/></div>
+        </div>
+        <div class="form-group"><label>Description</label><textarea id="a-desc" placeholder="Tell the story of this project..."></textarea></div>
+        <div class="form-group">
+          <label>Featured Project</label>
+          <select id="a-featured"><option value="true">Yes — show on homepage</option><option value="false">No</option></select>
+        </div>
+      </div>
+      <div class="admin-section">
+        <h2>Project Images</h2>
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+          <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFileSelect(event)"/>
+          <div class="upload-icon">🖼</div>
+          <p><strong>Click to upload</strong> or drag & drop images here</p>
+          <span>PNG, JPG, WEBP — Max 10MB each</span>
+        </div>
+        <div class="img-preview-grid" id="previewGrid"></div>
+      </div>
+      <div style="display:flex;gap:1rem;margin-top:1rem">
+        <button class="btn-dark" onclick="saveProject()">Save Project</button>
+        <button class="btn-sm" onclick="showAdminSection('projects')">Cancel</button>
+      </div>
+    `;
+    initUploadZone();
+  } else if (section === 'messages') {
+    el.innerHTML = `
+      <div class="admin-header"><h1>Messages</h1><p>Client enquiries from the contact form.</p></div>
+      <div class="admin-section">
+        <h2>All Messages</h2>
+        <table class="admin-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Budget</th><th>Message</th><th>Date</th></tr></thead>
+          <tbody>${DB.messages.map(m=>`
+            <tr>
+              <td>${sanitize(m.name)}</td>
+              <td>${sanitize(m.email)}</td>
+              <td>${sanitize(m.budget)}</td>
+              <td>${sanitize(m.message.substring(0,50))}…</td>
+              <td>${sanitize(m.date)}</td>
+            </tr>
+          `).join('')}</tbody>
+        </table>
+      </div>
+    `;
+  }
+}
+
+function renderProjectsTable(projects) {
+  return `
+    <table class="admin-table">
+      <thead><tr><th>Title</th><th>Category</th><th>Year</th><th>Featured</th><th>Actions</th></tr></thead>
+      <tbody>${projects.map(p=>`
+        <tr>
+          <td style="font-weight:500">${sanitize(p.title)}</td>
+          <td><span class="badge ${catBadge(p.category)}">${sanitize(p.category)}</span></td>
+          <td>${sanitize(p.year)}</td>
+          <td>${p.featured ? '⭐ Yes' : '—'}</td>
+          <td><div class="action-btns">
+            <button class="btn-sm" onclick="adminToggleFeatured(${p.id})">Toggle Featured</button>
+            <button class="btn-sm danger" onclick="adminDeleteProject(${p.id})">Delete</button>
+          </div></td>
+        </tr>
+      `).join('')}</tbody>
+    </table>
+  `;
+}
+
+function initUploadZone() {
+  const zone = document.getElementById('uploadZone');
+  if (!zone) return;
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
+}
+
+function handleFileSelect(e) { handleFiles(e.target.files); }
+
+function handleFiles(files) {
+  Array.from(files).forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    if (file.size > 10 * 1024 * 1024) { showToast('File too large: ' + file.name); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      uploadedFiles.push({ name: file.name, url: e.target.result });
+      renderPreviews();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderPreviews() {
+  const grid = document.getElementById('previewGrid');
+  if (!grid) return;
+  grid.innerHTML = uploadedFiles.map((f, i) => `
+    <div class="img-preview-item">
+      <img src="${f.url}" alt="${sanitize(f.name)}"/>
+      <button class="img-preview-remove" onclick="removePreview(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function removePreview(i) { uploadedFiles.splice(i, 1); renderPreviews(); }
+
+function saveProject() {
+  const title = document.getElementById('a-title')?.value.trim();
+  const cat   = document.getElementById('a-cat')?.value;
+  const loc   = document.getElementById('a-loc')?.value.trim();
+  const area  = document.getElementById('a-area')?.value.trim();
+  const desc  = document.getElementById('a-desc')?.value.trim();
+  const feat  = document.getElementById('a-featured')?.value === 'true';
+
+  if (!validateLength(title||'', 3)) { showToast('Please enter a project title.'); return; }
+  if (!validateLength(desc||'', 20)) { showToast('Please write a description (min 20 chars).'); return; }
+
+  const img = uploadedFiles.length > 0 ? uploadedFiles[0].url
+    : 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&auto=format';
+
+  const newProject = {
+    id: Date.now(), title, category: cat, description: desc,
+    year: new Date().getFullYear().toString(),
+    area: area || 'N/A', location: loc || 'Nairobi', image: img,
+    beforeImage: img, featured: feat
+  };
+  DB.projects.push(newProject);
+  uploadedFiles = [];
+  showToast('Project saved successfully!');
+  showAdminSection('projects');
+}
+
+function adminDeleteProject(id) {
+  if (!confirm('Delete this project? This cannot be undone.')) return;
+  const i = DB.projects.findIndex(p => p.id === id);
+  if (i !== -1) { DB.projects.splice(i, 1); }
+  closeProjectModal();
+  showToast('Project deleted.');
+  if (currentAdminSection) renderAdminContent(currentAdminSection);
+}
+
+function adminToggleFeatured(id) {
+  const p = DB.projects.find(x => x.id === id);
+  if (p) { p.featured = !p.featured; showToast(p.featured ? 'Marked as featured.' : 'Removed from featured.'); }
+  renderAdminContent(currentAdminSection);
+}
+
+function adminEditProject(id) {
+  closeProjectModal();
+  showAdminSection('upload');
+  setTimeout(() => {
+    const p = DB.projects.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('a-title').value = p.title;
+    document.getElementById('a-loc').value = p.location;
+    document.getElementById('a-area').value = p.area;
+    document.getElementById('a-desc').value = p.description;
+    showToast('Editing: ' + p.title);
+  }, 200);
+}
+
+/* ══════════════════════════════════════════════
+   CONTACT FORM
+══════════════════════════════════════════════ */
+function submitContact() {
+  const fname   = document.getElementById('c-fname').value.trim();
+  const lname   = document.getElementById('c-lname').value.trim();
+  const email   = document.getElementById('c-email').value.trim();
+  const budget  = document.getElementById('c-budget').value;
+  const message = document.getElementById('c-message').value.trim();
+
+  if (!validateLength(fname, 2)) { showToast('Please enter your first name.'); return; }
+  if (!validateEmail(email)) { showToast('Please enter a valid email address.'); return; }
+  if (!validateLength(message, 10)) { showToast('Please write a message (min 10 characters).'); return; }
+
+  DB.messages.push({ id: Date.now(), name: fname + ' ' + lname, email, budget, message, date: new Date().toISOString().split('T')[0] });
+  document.getElementById('contact-success').classList.remove('hidden');
+  ['c-fname','c-lname','c-email','c-message'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('c-budget').value = '';
+}
+
+function openWhatsApp() {
+  window.open('https://wa.me/254700123456?text=Hello%20ArtSpace!%20I%27d%20like%20to%20discuss%20an%20interior%20design%20project.', '_blank');
+}
+
+/* ══════════════════════════════════════════════
+   SCROLL ANIMATIONS
+══════════════════════════════════════════════ */
+function observeFadeIns() {
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }});
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.fade-in:not(.visible)').forEach(el => obs.observe(el));
+}
+
+/* ══════════════════════════════════════════════
+   TOAST NOTIFICATION
+══════════════════════════════════════════════ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+/* ══════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  updateNavAuth();
+  renderFeatured();
+  renderServices();
+  setTimeout(observeFadeIns, 100);
+  // Keyboard: Esc closes modals
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeProjectModal(); closeAuthModalBtn(); }
+  });
+});
+</script>
+</body>
+</html>
