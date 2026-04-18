@@ -27,6 +27,10 @@ const app = express();
 ══════════════════════════════════════════════ */
 
 // 1. Secure HTTP Headers (prevents XSS, clickjacking, MIME sniffing etc.)
+const connectOrigins = process.env.NODE_ENV === 'production' 
+  ? ["'self'", "https://artspace-hn3i.onrender.com"]
+  : ["'self'", "http://localhost:3000", "http://localhost:5000"];
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -34,8 +38,8 @@ app.use(helmet({
       styleSrc:       ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc:        ["'self'", "https://fonts.gstatic.com"],
       imgSrc:         ["'self'", "data:", "https://images.unsplash.com", "https://res.cloudinary.com"],
-      scriptSrc:      ["'self'"],
-      connectSrc:     ["'self'"],
+      scriptSrc:      ["'self'", "'unsafe-inline'"],
+      connectSrc:     connectOrigins,
       frameSrc:       ["'none'"],
     },
   },
