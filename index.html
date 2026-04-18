@@ -1520,74 +1520,88 @@
 
 <script>
 /* ══════════════════════════════════════════════
+   API CONFIGURATION
+══════════════════════════════════════════════ */
+const API_BASE = ''; // Empty = same origin, or set to 'https://your-api.com'
+
+// API Helper
+async function api(endpoint, options = {}) {
+  const url = API_BASE + endpoint;
+  const config = {
+    headers: { 'Content-Type': 'application/json', ...options.headers },
+    credentials: 'include',
+    ...options
+  };
+  if (options.body && typeof options.body === 'object') {
+    config.body = JSON.stringify(options.body);
+  }
+  const res = await fetch(url, config);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+/* ══════════════════════════════════════════════
    DATA STORE
 ══════════════════════════════════════════════ */
-// Simulated "database" (in production: MongoDB/MySQL via REST API)
-const DB = {
-  users: [
-    { id: 1, email: 'admin@artspace.com', password: 'admin123', role: 'admin', name: 'Sophia Mwangi' },
-    { id: 2, email: 'user@artspace.com',  password: 'user123',  role: 'user',  name: 'John Doe' }
-  ],
-  projects: [
-    {
-      id: 1, title: 'The Westlands Penthouse', category: 'Living Room',
-      description: 'A sweeping 4-bedroom penthouse transformed into an oasis of warmth and light, blending Italian marble with bespoke African joinery. The client requested a space that felt both globally refined and deeply rooted in Kenyan character.',
-      year: '2024', area: '420 m²', location: 'Westlands, Nairobi',
-      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&auto=format',
-      beforeImage: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&auto=format',
-      featured: true
-    },
-    {
-      id: 2, title: 'Lavington Kitchen Retreat', category: 'Kitchen',
-      description: 'A complete kitchen transformation featuring custom cabinetry in a warm walnut finish, Calacatta marble surfaces, and professional-grade appliances. The island became the heart of family life.',
-      year: '2024', area: '85 m²', location: 'Lavington, Nairobi',
-      image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&auto=format',
-      beforeImage: 'https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=800&auto=format',
-      featured: true
-    },
-    {
-      id: 3, title: 'Karen Sanctuary Bedroom', category: 'Bedroom',
-      description: 'A master bedroom designed as a true retreat — layered textures of linen, cashmere, and hand-embroidered cushions against a backdrop of warm, earthy hues. Bespoke joinery conceals all functional elements.',
-      year: '2023', area: '65 m²', location: 'Karen, Nairobi',
-      image: 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800&auto=format',
-      beforeImage: 'https://images.unsplash.com/photo-1556742044-3c52d6e88c62?w=800&auto=format',
-      featured: true
-    },
-    {
-      id: 4, title: 'Kilimani Creative Office', category: 'Office',
-      description: 'A modern creative agency space that balances productivity with inspiration. Open collaboration zones meet private focus pods, all wrapped in a palette of forest green and natural timber.',
-      year: '2023', area: '320 m²', location: 'Kilimani, Nairobi',
-      image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&auto=format',
-      beforeImage: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=800&auto=format',
-      featured: false
-    },
-    {
-      id: 5, title: 'Runda Dining Experience', category: 'Living Room',
-      description: 'An expansive open-plan living and dining area designed for effortless entertaining. Statement lighting, bespoke dining table for 14, and seamless indoor-outdoor flow.',
-      year: '2022', area: '180 m²', location: 'Runda, Nairobi',
-      image: 'https://images.unsplash.com/photo-1617104678098-de229db51175?w=800&auto=format',
-      beforeImage: 'https://images.unsplash.com/photo-1567016432779-094069958ea5?w=800&auto=format',
-      featured: false
-    },
-    {
-      id: 6, title: 'Muthaiga Spa Bathroom', category: 'Bedroom',
-      description: 'A hotel-grade bathroom sanctuary with freestanding stone tub, rain shower, and floor-to-ceiling book-matched marble panels. Complete sensory luxury.',
-      year: '2022', area: '28 m²', location: 'Muthaiga, Nairobi',
-      image: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&auto=format',
-      beforeImage: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&auto=format',
-      featured: false
-    }
-  ],
-  messages: [
-    { id: 1, name: 'Amara Osei', email: 'amara@email.com', budget: 'KES 3M – 5M', message: 'Interested in full home redesign.', date: '2025-07-10' },
-    { id: 2, name: 'James Kariuki', email: 'james@corp.co.ke', budget: 'KES 5M+', message: 'Office renovation project.', date: '2025-07-09' }
-  ]
+// Connected to MongoDB via REST API
+let DB = {
+  users: [],
+  projects: [],
+  messages: []
 };
 
 // Session state
 let currentUser = null;
 let loginAttempts = {};
 const MAX_ATTEMPTS = 5;
+
+// Initialize: fetch data from API
+async function initAPI() {
+  try {
+    // Fetch projects
+    const projectsRes = await api('/api/projects');
+    DB.projects = projectsRes.data.map(p => ({
+      id: p._id,
+      title: p.title,
+      category: p.category,
+      description: p.description,
+      year: p.year,
+      area: p.area,
+      location: p.location,
+      image: p.images?.[0]?.url || '',
+      beforeImage: p.beforeImage?.url || '',
+      featured: p.featured
+    }));
+    // Re-render if on portfolio/home
+    if (document.getElementById('featured-grid')) renderFeatured();
+    if (document.getElementById('portfolio-grid')) renderPortfolio();
+  } catch (e) {
+    console.error('Failed to load projects:', e.message);
+  }
+}
+
+// Check existing session on load
+async function checkAuth() {
+  try {
+    const res = await api('/api/auth/me');
+    if (res.status === 'success') {
+      currentUser = {
+        id: res.data.user._id,
+        email: res.data.user.email,
+        name: res.data.user.firstName + ' ' + res.data.user.lastName,
+        role: res.data.user.role
+      };
+      updateNavAuth();
+    }
+  } catch (e) {
+    // Not logged in - that's fine
+  }
+}
+
+// Run on page load
+initAPI();
+checkAuth();
 
 /* ══════════════════════════════════════════════
    SECURITY HELPERS
@@ -1870,16 +1884,21 @@ function handleLogin() {
     showAuthError('Too many login attempts. Please try again in 15 minutes.'); return;
   }
 
-  // Auth check (simulating bcrypt compare; real: POST /api/auth/login)
-  const user = DB.users.find(u => u.email === email && u.password === pass);
-  if (!user) { showAuthError('Invalid email or password.'); return; }
-
-  // Session
-  currentUser = user;
-  closeAuthModalBtn();
-  updateNavAuth();
-  showToast(`Welcome back, ${user.name}!`);
-  if (user.role === 'admin') showPage('admin');
+  // API call to login
+  api('/api/auth/login', { method: 'POST', body: { email, password: pass } })
+    .then(res => {
+      currentUser = {
+        id: res.data.user._id,
+        email: res.data.user.email,
+        name: res.data.user.firstName + ' ' + res.data.user.lastName,
+        role: res.data.user.role
+      };
+      closeAuthModalBtn();
+      updateNavAuth();
+      showToast(`Welcome back, ${res.data.user.firstName}!`);
+      if (res.data.user.role === 'admin') showPage('admin');
+    })
+    .catch(err => showAuthError(err.message));
 }
 
 function handleRegister() {
@@ -1892,21 +1911,36 @@ function handleRegister() {
   if (!validateLength(fname, 2, 50)) { showAuthError('Please enter your first name.'); return; }
   if (!validateEmail(email)) { showAuthError('Please enter a valid email address.'); return; }
   if (!validateLength(pass, 8)) { showAuthError('Password must be at least 8 characters.'); return; }
-  if (DB.users.find(u => u.email === email)) { showAuthError('This email is already registered.'); return; }
 
-  const newUser = { id: Date.now(), email, password: pass, role: 'user', name: fname + ' ' + lname };
-  DB.users.push(newUser);
-  currentUser = newUser;
-  closeAuthModalBtn();
-  updateNavAuth();
-  showToast(`Account created! Welcome, ${fname}.`);
+  // API call to register
+  api('/api/auth/register', { method: 'POST', body: { firstName: fname, lastName: lname, email, password: pass } })
+    .then(res => {
+      currentUser = {
+        id: res.data.user._id,
+        email: res.data.user.email,
+        name: res.data.user.firstName + ' ' + res.data.user.lastName,
+        role: res.data.user.role
+      };
+      closeAuthModalBtn();
+      updateNavAuth();
+      showToast(`Account created! Welcome, ${fname}.`);
+    })
+    .catch(err => showAuthError(err.message));
 }
 
 function logout() {
-  currentUser = null;
-  updateNavAuth();
-  showPage('home');
-  showToast('You have been signed out.');
+  api('/api/auth/logout', { method: 'POST' })
+    .then(() => {
+      currentUser = null;
+      updateNavAuth();
+      showPage('home');
+      showToast('You have been signed out.');
+    })
+    .catch(() => {
+      currentUser = null;
+      updateNavAuth();
+      showPage('home');
+    });
 }
 
 function updateNavAuth() {
@@ -1938,7 +1972,13 @@ function showAdminSection(section) {
   renderAdminContent(section);
 }
 
-function renderAdminDashboard() { renderAdminContent('dashboard'); }
+function renderAdminDashboard() { 
+  // Fetch messages for dashboard
+  api('/api/messages').then(res => {
+    DB.messages = res.data;
+    renderAdminContent('dashboard');
+  }).catch(() => renderAdminContent('dashboard'));
+}
 
 function renderAdminContent(section) {
   const el = document.getElementById('admin-content-area');
@@ -1952,7 +1992,7 @@ function renderAdminContent(section) {
       <div class="admin-cards">
         <div class="admin-card"><div class="admin-card-icon">🖼</div><div class="admin-card-num">${DB.projects.length}</div><div class="admin-card-label">Total Projects</div></div>
         <div class="admin-card"><div class="admin-card-icon">✉️</div><div class="admin-card-num">${DB.messages.length}</div><div class="admin-card-label">Messages</div></div>
-        <div class="admin-card"><div class="admin-card-icon">👤</div><div class="admin-card-num">${DB.users.length}</div><div class="admin-card-label">Users</div></div>
+        <div class="admin-card"><div class="admin-card-icon">👤</div><div class="admin-card-num">1</div><div class="admin-card-label">Users</div></div>
         <div class="admin-card"><div class="admin-card-icon">⭐</div><div class="admin-card-num">${DB.projects.filter(p=>p.featured).length}</div><div class="admin-card-label">Featured</div></div>
       </div>
       <div class="admin-section">
@@ -2017,11 +2057,11 @@ function renderAdminContent(section) {
           <thead><tr><th>Name</th><th>Email</th><th>Budget</th><th>Message</th><th>Date</th></tr></thead>
           <tbody>${DB.messages.map(m=>`
             <tr>
-              <td>${sanitize(m.name)}</td>
+              <td>${sanitize(m.firstName + ' ' + (m.lastName || ''))}</td>
               <td>${sanitize(m.email)}</td>
-              <td>${sanitize(m.budget)}</td>
+              <td>${sanitize(m.budget || '—')}</td>
               <td>${sanitize(m.message.substring(0,50))}…</td>
-              <td>${sanitize(m.date)}</td>
+              <td>${new Date(m.createdAt).toLocaleDateString()}</td>
             </tr>
           `).join('')}</tbody>
         </table>
@@ -2097,33 +2137,53 @@ function saveProject() {
   if (!validateLength(title||'', 3)) { showToast('Please enter a project title.'); return; }
   if (!validateLength(desc||'', 20)) { showToast('Please write a description (min 20 chars).'); return; }
 
-  const img = uploadedFiles.length > 0 ? uploadedFiles[0].url
-    : 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&auto=format';
-
-  const newProject = {
-    id: Date.now(), title, category: cat, description: desc,
-    year: new Date().getFullYear().toString(),
-    area: area || 'N/A', location: loc || 'Nairobi', image: img,
-    beforeImage: img, featured: feat
-  };
-  DB.projects.push(newProject);
-  uploadedFiles = [];
-  showToast('Project saved successfully!');
-  showAdminSection('projects');
+  // API call to create project (note: file upload requires FormData, using placeholder for now)
+  api('/api/projects', { 
+    method: 'POST', 
+    body: { title, category: cat, description: desc, location: loc, area, year: new Date().getFullYear().toString(), featured: feat }
+  })
+    .then(res => {
+      // Add to local DB
+      const p = res.data;
+      DB.projects.unshift({
+        id: p._id, title: p.title, category: p.category, description: p.description,
+        year: p.year, area: p.area, location: p.location, image: p.images?.[0]?.url || '',
+        beforeImage: p.beforeImage?.url || '', featured: p.featured
+      });
+      uploadedFiles = [];
+      showToast('Project saved successfully!');
+      showAdminSection('projects');
+    })
+    .catch(err => showToast(err.message));
 }
 
 function adminDeleteProject(id) {
   if (!confirm('Delete this project? This cannot be undone.')) return;
-  const i = DB.projects.findIndex(p => p.id === id);
-  if (i !== -1) { DB.projects.splice(i, 1); }
-  closeProjectModal();
-  showToast('Project deleted.');
-  if (currentAdminSection) renderAdminContent(currentAdminSection);
+  api('/api/projects/' + id, { method: 'DELETE' })
+    .then(() => {
+      const i = DB.projects.findIndex(p => p.id === id);
+      if (i !== -1) { DB.projects.splice(i, 1); }
+      closeProjectModal();
+      showToast('Project deleted.');
+      if (currentAdminSection) renderAdminContent(currentAdminSection);
+    })
+    .catch(err => showToast(err.message));
 }
 
 function adminToggleFeatured(id) {
   const p = DB.projects.find(x => x.id === id);
-  if (p) { p.featured = !p.featured; showToast(p.featured ? 'Marked as featured.' : 'Removed from featured.'); }
+  if (!p) return;
+  api('/api/projects/' + id, { 
+    method: 'PATCH', 
+    body: { featured: !p.featured }
+  })
+    .then(() => {
+      p.featured = !p.featured;
+      showToast(p.featured ? 'Marked as featured.' : 'Removed from featured.');
+      if (currentAdminSection) renderAdminContent(currentAdminSection);
+    })
+    .catch(err => showToast(err.message));
+} }
   renderAdminContent(currentAdminSection);
 }
 
@@ -2155,10 +2215,14 @@ function submitContact() {
   if (!validateEmail(email)) { showToast('Please enter a valid email address.'); return; }
   if (!validateLength(message, 10)) { showToast('Please write a message (min 10 characters).'); return; }
 
-  DB.messages.push({ id: Date.now(), name: fname + ' ' + lname, email, budget, message, date: new Date().toISOString().split('T')[0] });
-  document.getElementById('contact-success').classList.remove('hidden');
-  ['c-fname','c-lname','c-email','c-message'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('c-budget').value = '';
+  // API call to submit message
+  api('/api/messages', { method: 'POST', body: { firstName: fname, lastName: lname, email, budget, message } })
+    .then(() => {
+      document.getElementById('contact-success').classList.remove('hidden');
+      ['c-fname','c-lname','c-email','c-message'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('c-budget').value = '';
+    })
+    .catch(err => showToast(err.message));
 }
 
 function openWhatsApp() {
