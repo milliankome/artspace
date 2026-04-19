@@ -1527,6 +1527,16 @@
       <div class="admin-nav-item" onclick="showAdminSection('quotes')">📋 Quote Requests</div>
       <div class="admin-nav-item" onclick="showAdminSection('team')">👥 Team</div>
       <div class="admin-nav-item" onclick="showAdminSection('settings')">⚙️ Settings</div>
+      <div class="admin-nav-divider"></div>
+      <div class="admin-nav-item" onclick="showAdminSection('press')">🏆 Press &amp; Awards</div>
+      <div class="admin-nav-item" onclick="showAdminSection('subscribers')">📧 Subscribers</div>
+      <div class="admin-nav-item" onclick="showAdminSection('styleLibrary')">🎨 Style Library</div>
+      <div class="admin-nav-item" onclick="showAdminSection('floorPlans')">📐 Floor Plans</div>
+      <div class="admin-nav-divider"></div>
+      <div class="admin-nav-item" onclick="showAdminSection('analytics')">📊 Analytics</div>
+      <div class="admin-nav-item" onclick="showAdminSection('activityLog')">📋 Activity Log</div>
+      <div class="admin-nav-item" onclick="showAdminSection('seoSettings')">🔍 SEO Settings</div>
+      <div class="admin-nav-item" onclick="showAdminSection('heroSettings')">🖼 Hero / Slider</div>
     </div>
     <div class="admin-content" id="admin-content-area">
       <!-- Injected dynamically -->
@@ -1949,7 +1959,8 @@ function handleLogin() {
       closeAuthModalBtn();
       updateNavAuth();
       showToast(`Welcome back, ${res.data.user.firstName}!`);
-      if (res.data.user.role === 'admin') showPage('admin');
+      // Show admin panel for admin-level roles
+      if (['admin', 'super_admin', 'editor', 'lead_manager'].includes(res.data.user.role)) showPage('admin');
     })
     .catch(err => showAuthError(err.message));
 }
@@ -2005,7 +2016,7 @@ function updateNavAuth() {
     area.innerHTML = `
       <div class="user-badge">
         <div class="user-avatar">${currentUser.name[0]}</div>
-        ${currentUser.role === 'admin' ? `<a href="#" onclick="showPage('admin')" style="font-size:0.78rem;color:var(--brown-mid)">Dashboard</a>` : ''}
+        ${['admin', 'super_admin', 'editor', 'lead_manager'].includes(currentUser.role) ? `<a href="#" onclick="showPage('admin')" style="font-size:0.78rem;color:var(--brown-mid)">Dashboard</a>` : ''}
         <a href="#" onclick="logout()" style="font-size:0.78rem;color:var(--text-light)">Sign Out</a>
       </div>`;
   } else {
@@ -2799,5 +2810,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 </script>
+<!-- ArtSpace Admin Panel v2.0 — Enhanced Module (additive, non-breaking) -->
+<script src="/admin-panel.js"></script>
 </body>
 </html>

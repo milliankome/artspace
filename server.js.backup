@@ -543,8 +543,8 @@ app.use('/api/messages', messagesRouter);
 /* ══════════════════════════════════════════════
    EXTENDED ROUTES — New Admin Features
 ══════════════════════════════════════════════ */
-const extendedV2Routes = require('./routes/extended-v2');
 const extendedRoutes = require('./routes/extended');
+const { protect, restrictTo } = require('./routes/helpers');
 app.use('/api', extendedRoutes);
 
 /* ══════════════════════════════════════════════

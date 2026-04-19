@@ -182,7 +182,131 @@ async function migrate() {
     console.log('ℹ️  Settings already exist');
   }
   
-  console.log('\n🎉 Migration complete!');
+  // ============================================
+  // NEW: Enhanced Admin Features Migration
+  // ============================================
+  console.log('\n📋 Running enhanced features migration...');
+  
+  // 12. SEO Settings Collection
+  console.log('📦 Creating seoSettings collection...');
+  try {
+    await db.createCollection('seoSettings');
+    console.log('✅ seoSettings collection ready');
+  } catch (e) {
+    if (e.codeName === 'NamespaceExists') console.log('ℹ️  seoSettings already exists');
+    else console.log('❌ seoSettings:', e.message);
+  }
+  
+  // 13. Hero Slides Collection
+  console.log('📦 Creating heroSlides collection...');
+  try {
+    await db.createCollection('heroSlides');
+    console.log('✅ heroSlides collection ready');
+  } catch (e) {
+    if (e.codeName === 'NamespaceExists') console.log('ℹ️  heroSlides already exists');
+    else console.log('❌ heroSlides:', e.message);
+  }
+  
+  // 14. Project Categories Collection
+  console.log('📦 Creating projectCategories collection...');
+  try {
+    await db.createCollection('projectCategories');
+    console.log('✅ projectCategories collection ready');
+  } catch (e) {
+    if (e.codeName === 'NamespaceExists') console.log('ℹ️  projectCategories already exists');
+    else console.log('❌ projectCategories:', e.message);
+  }
+  
+  // 15. Feature Flags Collection
+  console.log('📦 Creating featureFlags collection...');
+  try {
+    await db.createCollection('featureFlags');
+    console.log('✅ featureFlags collection ready');
+  } catch (e) {
+    if (e.codeName === 'NamespaceExists') console.log('ℹ️  featureFlags already exists');
+    else console.log('❌ featureFlags:', e.message);
+  }
+  
+  // Update existing users - map admin to super_admin
+  console.log('🔄 Updating user roles...');
+  const adminUsers = await db.collection('users').countDocuments({ role: 'admin' });
+  if (adminUsers > 0) {
+    await db.collection('users').updateMany(
+      { role: 'admin' },
+      { $set: { role: 'super_admin' } }
+    );
+    console.log(`   ✅ Mapped ${adminUsers} admin users to super_admin`);
+  }
+  
+  // Update existing projects - add new fields
+  console.log('🔄 Updating project schema...');
+  const projectsWithoutStatus = await db.collection('projects').countDocuments({ status: { $exists: false } });
+  if (projectsWithoutStatus > 0) {
+    await db.collection('projects').updateMany(
+      { status: { $exists: false } },
+      { $set: { status: 'completed', views: 0, coverImage: 0 } }
+    );
+    console.log(`   ✅ Added status, views, coverImage to ${projectsWithoutStatus} projects`);
+  }
+  
+  // Add order to existing images
+  const projectsWithUnordered = await db.collection('projects').find({
+    'images.0': { $exists: true },
+    'images.order': { $exists: false }
+  }).toArray();
+  if (projectsWithUnordered.length > 0) {
+    for (const project of projectsWithUnordered) {
+      const orderedImages = project.images.map((img, idx) => ({ ...img, order: idx }));
+      await db.collection('projects').updateOne(
+        { _id: project._id },
+        { $set: { images: orderedImages } }
+      );
+    }
+    console.log(`   ✅ Added order to images in ${projectsWithUnordered.length} projects`);
+  }
+  
+  // Update existing messages - add new fields
+  console.log('🔄 Updating message schema...');
+  const messagesWithoutResolved = await db.collection('messages').countDocuments({ resolved: { $exists: false } });
+  if (messagesWithoutResolved > 0) {
+    await db.collection('messages').updateMany(
+      { resolved: { $exists: false } },
+      { $set: { resolved: false, source: 'direct', internalNotes: '' } }
+    );
+    console.log(`   ✅ Added resolved, source, internalNotes to ${messagesWithoutResolved} messages`);
+  }
+  
+  // Create indexes for new features
+  console.log('🔧 Creating indexes for enhanced features...');
+  try {
+    await db.collection('projects').createIndex({ views: -1 });
+    await db.collection('messages').createIndex({ resolved: 1, read: 1 });
+    await db.collection('messages').createIndex({ source: 1 });
+    await db.collection('heroSlides').createIndex({ order: 1 });
+    console.log('   ✅ Indexes created');
+  } catch (e) {
+    console.log('   ℹ️  Some indexes may already exist');
+  }
+  
+  // Seed default feature flags
+  console.log('🌱 Seeding feature flags...');
+  const featureFlags = [
+    { key: 'enable_seo_settings', enabled: true, description: 'Enable SEO settings management' },
+    { key: 'enable_hero_slider', enabled: true, description: 'Enable homepage hero slider' },
+    { key: 'enable_analytics', enabled: true, description: 'Enable analytics dashboard' },
+    { key: 'enable_activity_log', enabled: true, description: 'Enable activity logging' },
+    { key: 'enable_project_views', enabled: true, description: 'Enable project view tracking' }
+  ];
+  for (const flag of featureFlags) {
+    await db.collection('featureFlags').updateOne(
+      { key: flag.key },
+      { $set: { ...flag, updatedAt: new Date() } },
+      { upsert: true }
+    );
+  }
+  console.log('   ✅ Feature flags seeded');
+  
+  console.log('\n🎉 Enhanced migration complete!');
   process.exit(0);
 }
 

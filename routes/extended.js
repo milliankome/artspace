@@ -695,4 +695,413 @@ router.delete('/project-categories/:id', protect, restrictTo('admin'), async (re
   }
 });
 
+// ============================================
+// PROJECT STATUS & IMAGE ORDERING
+// ============================================
+
+// PATCH update project status
+router.patch('/projects/:id/status', protect, restrictTo('admin', 'editor'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    if (!['completed', 'in-progress', 'concept'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+    const result = await mongoose.connection.db.collection('projects').findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(id) },
+      { $set: { status, updatedAt: new Date() } },
+      { returnDocument: 'after' }
+    );
+    if (!result) return res.status(404).json({ error: 'Project not found' });
+    await logActivity(req.user._id, 'update_project_status', { projectId: id, status });
+    res.json({ status: 'success', data: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT reorder project images
+router.put('/projects/:id/images/order', protect, restrictTo('admin', 'editor'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { imageOrder } = req.body; // Array of indices in new order
+    const project = await mongoose.connection.db.collection('projects').findOne({ _id: new mongoose.Types.ObjectId(id) });
+    if (!project) return res.status(404).json({ error: 'Project not found' });
+    
+    // Reorder images based on provided order
+    const reorderedImages = imageOrder.map(idx => project.images[idx]).filter(Boolean);
+    const result = await mongoose.connection.db.collection('projects').findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(id) },
+      { $set: { images: reorderedImages, updatedAt: new Date() } },
+      { returnDocument: 'after' }
+    );
+    await logActivity(req.user._id, 'reorder_project_images', { projectId: id });
+    res.json({ status: 'success', data: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH set cover image
+router.patch('/projects/:id/cover', protect, restrictTo('admin', 'editor'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { coverImage } = req.body;
+    const result = await mongoose.connection.db.collection('projects').findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(id) },
+      { $set: { coverImage, updatedAt: new Date() } },
+      { returnDocument: 'after' }
+    );
+    if (!result) return res.status(404).json({ error: 'Project not found' });
+    res.json({ status: 'success', data: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============================================
+// SEO SETTINGS
+// ============================================
+
+// GET SEO settings
+router.get('/seo', async (req, res) => {
+  try {
+    const seoSettings = await mongoose.connection.db.collection('seoSettings').find({}).toArray();
+    const result = {};
+    seoSettings.forEach(s => { result[s.page] = s; });
+    res.json({ status: 'success', data: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT update SEO settings for a page
+router.put('/seo/:page', protect, restrictTo('admin'), async (req, res) => {
+  try {
+    const { page } = req.params;
+    const { title, description, keywords, ogImage } = req.body;
+    const result = await mongoose.connection.db.collection('seoSettings').findOneAndUpdate(
+      { page },
+      { $set: { title, description, keywords, ogImage, updatedAt: new Date() } },
+      { upsert: true, returnDocument: 'after' }
+    );
+    await logActivity(req.user._id, 'update_seo', { page });
+    res.json({ status: 'success', data: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============================================
+// HOMEPAGE HERO / SLIDER
+// ============================================
+
+// GET hero slides
+router.get('/hero-slides', async (req, res) => {
+  try {
+    const slides = await mongoose.connection.db.collection('heroSlides').find({}).sort({ order: 1 }).toArray();
+    res.json({ status: 'success', data: slides });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST create hero slide
+router.post('/hero-slides', protect, restrictTo('admin'), upload.single('image'), async (req, res) => {
+  try {
+    const { headline, subheadline, ctaText, ctaLink, order, active } = req.body;
+    const slide = {
+      headline: headline || '',
+      subheadline: subheadline || '',
+      ctaText: ctaText || 'Learn More',
+      ctaLink: ctaLink || '#',
+      image: req.file ? '/uploads/' + req.file.filename : '',
+      order: order || 0,
+      active: active !== false,
+      createdAt: new Date()
+    };
+    const result = await mongoose.connection.db.collection('heroSlides').insertOne(slide);
+    await logActivity(req.user._id, 'create_hero_slide', { slideId: result.insertedId });
+    res.status(201).json({ status: 'success', data: { _id: result.insertedId, ...slide } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT update hero slide
+router.put('/hero-slides/:id', protect, restrictTo('admin'), upload.single('image'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const update = { ...req.body };
+    delete update._id;
+    if (req.file) update.image = '/uploads/' + req.file.filename;
+    update.updatedAt = new Date();
+    
+    const result = await mongoose.connection.db.collection('heroSlides').findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(id) },
+      { $set: update },
+      { returnDocument: 'after' }
+    );
+    if (!result) return res.status(404).json({ error: 'Slide not found' });
+    await logActivity(req.user._id, 'update_hero_slide', { slideId: id });
+    res.json({ status: 'success', data: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE hero slide
+router.delete('/hero-slides/:id', protect, restrictTo('admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    await mongoose.connection.db.collection('heroSlides').deleteOne({ _id: new mongoose.Types.ObjectId(id) });
+    await logActivity(req.user._id, 'delete_hero_slide', { slideId: id });
+    res.json({ status: 'success', message: 'Slide deleted' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT reorder hero slides
+router.put('/hero-slides/reorder', protect, restrictTo('admin'), async (req, res) => {
+  try {
+    const { slides } = req.body; // Array of { id, order }
+    const bulkOps = slides.map(s => ({
+      updateOne: {
+        filter: { _id: new mongoose.Types.ObjectId(s.id) },
+        update: { $set: { order: s.order } }
+      }
+    }));
+    await mongoose.connection.db.collection('heroSlides').bulkWrite(bulkOps);
+    await logActivity(req.user._id, 'reorder_hero_slides', {});
+    res.json({ status: 'success', message: 'Slides reordered' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============================================
+// ENHANCED MESSAGES (Internal Notes, Reply, Filter)
+// ============================================
+
+// GET messages with filters
+router.get('/messages', protect, restrictTo('admin', 'editor', 'lead_manager'), async (req, res) => {
+  try {
+    const { read, resolved, source, search, page = 1, limit = 20 } = req.query;
+    const filter = {};
+    if (read !== undefined) filter.read = read === 'true';
+    if (resolved !== undefined) filter.resolved = resolved === 'true';
+    if (source) filter.source = source;
+    if (search) {
+      filter.$or = [
+        { firstName: { $regex: search, $options: 'i' } },
+        { lastName: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { message: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const messages = await mongoose.connection.db.collection('messages')
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .toArray();
+    const total = await mongoose.connection.db.collection('messages').countDocuments(filter);
+    
+    res.json({ 
+      status: 'success', 
+      data: messages, 
+      total, 
+      page: parseInt(page), 
+      pages: Math.ceil(total / parseInt(limit)) 
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH update message (mark read, resolved, add notes)
+router.patch('/messages/:id', protect, restrictTo('admin', 'editor', 'lead_manager'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { read, resolved, internalNotes, source } = req.body;
+    const update = { updatedAt: new Date() };
+    if (read !== undefined) update.read = read;
+    if (resolved !== undefined) {
+      update.resolved = resolved;
+      if (resolved) update.resolvedAt = new Date();
+    }
+    if (internalNotes !== undefined) update.internalNotes = internalNotes;
+    if (source) update.source = source;
+    
+    const result = await mongoose.connection.db.collection('messages').findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(id) },
+      { $set: update },
+      { returnDocument: 'after' }
+    );
+    if (!result) return res.status(404).json({ error: 'Message not found' });
+    await logActivity(req.user._id, 'update_message', { messageId: id });
+    res.json({ status: 'success', data: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST reply to message (store reply internally)
+router.post('/messages/:id/reply', protect, restrictTo('admin', 'editor'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reply } = req.body;
+    if (!reply) return res.status(400).json({ error: 'Reply content required' });
+    
+    const result = await mongoose.connection.db.collection('messages').findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(id) },
+      { 
+        $set: { 
+          repliedBy: req.user._id,
+          repliedAt: new Date(),
+          reply: reply,
+          updatedAt: new Date()
+        } 
+      },
+      { returnDocument: 'after' }
+    );
+    if (!result) return res.status(404).json({ error: 'Message not found' });
+    await logActivity(req.user._id, 'reply_message', { messageId: id });
+    res.json({ status: 'success', data: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============================================
+// ANALYTICS - PROJECT VIEWS & INQUIRY SOURCES
+// ============================================
+
+// GET project view analytics
+router.get('/analytics/project-views', protect, restrictTo('admin', 'editor', 'lead_manager'), async (req, res) => {
+  try {
+    const projects = await mongoose.connection.db.collection('projects')
+      .find({})
+      .sort({ views: -1 })
+      .limit(10)
+      .project({ title: 1, views: 1, category: 1 })
+      .toArray();
+    res.json({ status: 'success', data: projects });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET inquiry source analytics
+router.get('/analytics/inquiry-sources', protect, restrictTo('admin', 'editor', 'lead_manager'), async (req, res) => {
+  try {
+    const sources = await mongoose.connection.db.collection('messages').aggregate([
+      { $group: { _id: '$source', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]).toArray();
+    
+    const quoteSources = await mongoose.connection.db.collection('quoteRequests').aggregate([
+      { $group: { _id: '$source', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]).toArray();
+    
+    res.json({ 
+      status: 'success', 
+      data: { 
+        messages: sources,
+        quotes: quoteSources
+      } 
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST track project view (public endpoint)
+router.post('/projects/:id/view', async (req, res) => {
+  try {
+    await mongoose.connection.db.collection('projects').updateOne(
+      { _id: new mongoose.Types.ObjectId(req.params.id) },
+      { $inc: { views: 1 } }
+    );
+    res.json({ status: 'success' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============================================
+// USER MANAGEMENT (Admin Roles)
+// ============================================
+
+// GET all users (admin only)
+router.get('/users', protect, restrictTo('super_admin'), async (req, res) => {
+  try {
+    const users = await mongoose.connection.db.collection('users')
+      .find({})
+      .select('firstName lastName email role createdAt')
+      .toArray();
+    res.json({ status: 'success', data: users });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH update user role
+router.patch('/users/:id/role', protect, restrictTo('super_admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+    const validRoles = ['user', 'viewer', 'editor', 'lead_manager', 'super_admin'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: 'Invalid role' });
+    }
+    const result = await mongoose.connection.db.collection('users').findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(id) },
+      { $set: { role, updatedAt: new Date() } },
+      { returnDocument: 'after' }
+    );
+    if (!result) return res.status(404).json({ error: 'User not found' });
+    await logActivity(req.user._id, 'update_user_role', { targetUserId: id, role });
+    res.json({ status: 'success', data: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============================================
+// EXPORT DATA (Subscribers, etc.)
+// ============================================
+
+// Export subscribers as CSV
+router.get('/export/subscribers', protect, restrictTo('admin'), async (req, res) => {
+  try {
+    const subscribers = await mongoose.connection.db.collection('subscribers').find({}).toArray();
+    const csv = 'Email,Subscribed At\n' + 
+      subscribers.map(s => `${s.email},${s.subscribedAt}`).join('\n');
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=subscribers.csv');
+    res.send(csv);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Export messages as CSV
+router.get('/export/messages', protect, restrictTo('admin'), async (req, res) => {
+  try {
+    const messages = await mongoose.connection.db.collection('messages').find({}).toArray();
+    const csv = 'First Name,Last Name,Email,Message,Source,Read,Resolved,Created At\n' + 
+      messages.map(m => `${m.firstName},${m.lastName},${m.email},"${m.message.replace(/"/g, '""')}",${m.source || ''},${m.read},${m.resolved},${m.createdAt}`).join('\n');
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=messages.csv');
+    res.send(csv);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

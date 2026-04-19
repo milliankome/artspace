@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ArtSpace Admin Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --brown-deep: #3E2723;
+      --brown-mid: #6D4C41;
+      --brown-warm: #8D6E63;
+      --nude: #C8A882;
+      --cream: #F5EFE6;
+      --beige: #EDE0D0;
+      --linen: #FAF7F2;
+      --white: #FFFFFF;
+      --charcoal: #2C2C2C;
+      --text-light: #7A6A5E;
+      --gold: #B8996A;
+      --success: #4CAF50;
+      --warning: #FF9800;
+      --danger: #F44336;
+      --info: #2196F3;
+      --serif: 'Cormorant Garamond', serif;
+      --sans: 'Jost', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--linen); color: var(--charcoal); }
+    
+    /* Layout */
+    .admin-container { display: flex; min-height: 100vh; }
+    .sidebar { width: 260px; background: var(--brown-deep); color: var(--cream); padding: 1.5rem; position: fixed; height: 100vh; overflow-y: auto; }
+    .sidebar-logo { font-family: var(--serif); font-size: 1.5rem; font-weight: 600; margin-bottom: 2rem; color: var(--gold); }
+    .sidebar-logo span { color: var(--cream); }
+    .nav-item { padding: 0.8rem 1rem; cursor: pointer; border-radius: 4px; margin-bottom: 0.3rem; transition: all 0.3s; display: flex; align-items: center; gap: 0.5rem; }
+    .nav-item:hover, .nav-item.active { background: rgba(200,168,130,0.2); }
+    .nav-item.active { background: var(--gold); color: var(--brown-deep); }
+    .main-content { flex: 1; margin-left: 260px; padding: 2rem; }
+    
+    /* Header */
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .header h1 { font-family: var(--serif); font-size: 2rem; color: var(--brown-deep); }
+    .user-info { display: flex; align-items: center; gap: 1rem; }
+    .logout-btn { background: var(--danger); color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+    
+    /* Cards */
+    .card { background: var(--white); border-radius: 8px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 1.5rem; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .card-title { font-size: 1.2rem; font-weight: 600; color: var(--brown-deep); }
+    
+    /* Stats Grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: var(--white); padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    .stat-value { font-size: 2rem; font-weight: 600; color: var(--brown-deep); }
+    .stat-label { color: var(--text-light); font-size: 0.9rem; }
+    
+    /* Tables */
+    .table { width: 100%; border-collapse: collapse; }
+    .table th, .table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--beige); }
+    .table th { background: var(--cream); font-weight: 600; color: var(--brown-deep); }
+    .table tr:hover { background: var(--linen); }
+    
+    /* Forms */
+    .form-group { margin-bottom: 1rem; }
+    .form-label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--brown-deep); }
+    .form-input, .form-select, .form-textarea { width: 100%; padding: 0.8rem; border: 1px solid var(--beige); border-radius: 4px; font-family: var(--sans); }
+    .form-textarea { min-height: 100px; resize: vertical; }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--gold); }
+    
+    /* Buttons */
+    .btn { padding: 0.8rem 1.5rem; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; transition: all 0.3s; }
+    .btn-primary { background: var(--brown-deep); color: var(--cream); }
+    .btn-primary:hover { background: var(--brown-mid); }
+    .btn-secondary { background: var(--beige); color: var(--brown-deep); }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+    
+    /* Tabs */
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 2px solid var(--beige); }
+    .tab { padding: 0.8rem 1.5rem; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+    .tab.active { border-bottom-color: var(--gold); color: var(--brown-deep); font-weight: 600; }
+    
+    /* Modal */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+    .modal.active { display: flex; align-items: center; justify-content: center; }
+    .modal-content { background: var(--white); padding: 2rem; border-radius: 8px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+    
+    /* Badges */
+    .badge { padding: 0.3rem 0.8rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+    .badge-success { background: #E8F5E9; color: var(--success); }
+    .badge-warning { background: #FFF3E0; color: var(--warning); }
+    .badge-danger { background: #FFEBEE; color: var(--danger); }
+    .badge-info { background: #E3F2FD; color: var(--info); }
+    
+    /* Image Grid */
+    .image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+    .image-item { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 1; }
+    .image-item img { width: 100%; height: 100%; object-fit: cover; }
+    .image-item .cover-badge { position: absolute; top: 0.5rem; left: 0.5rem; background: var(--gold); color: var(--brown-deep); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem; }
+    
+    /* Search */
+    .search-bar { display: flex; gap: 1rem; margin-bottom: 1rem; }
+    .search-input { flex: 1; padding: 0.8rem; border: 1px solid var(--beige); border-radius: 4px; }
+    
+    /* Filters */
+    .filters { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .filter-btn { padding: 0.5rem 1rem; border: 1px solid var(--beige); background: var(--white); border-radius: 4px; cursor: pointer; }
+    .filter-btn.active { background: var(--brown-deep); color: var(--cream); border-color: var(--brown-deep); }
+    
+    /* Hidden */
+    .hidden { display: none !important; }
+    
+    /* Loading */
+    .loading { text-align: center; padding: 2rem; color: var(--text-light); }
+    
+    /* Toast */
+    .toast { position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem; border-radius: 4px; color: white; z-index: 2000; animation: slideIn 0.3s; }
+    .toast-success { background: var(--success); }
+    .toast-error { background: var(--danger); }
+    @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">Art<span>Space</span> Admin</div>
+      <nav id="adminNav">
+        <div class="nav-item active" data-section="dashboard">📊 Dashboard</div>
+        <div class="nav-item" data-section="projects">🏠 Projects</div>
+        <div class="nav-item" data-section="messages">💬 Messages</div>
+        <div class="nav-item" data-section="quotes">📝 Quote Requests</div>
+        <div class="nav-item" data-section="services">✨ Services</div>
+        <div class="nav-item" data-section="testimonials">⭐ Testimonials</div>
+        <div class="nav-item" data-section="faqs">❓ FAQs</div>
+        <div class="nav-item" data-section="team">👥 Team</div>
+        <div class="nav-item" data-section="press">🏆 Press & Awards</div>
+        <div class="nav-item" data-section="subscribers">📧 Subscribers</div>
+        <div class="nav-item" data-section="settings">⚙️ Site Settings</div>
+        <div class="nav-item" data-section="seo">🔍 SEO Settings</div>
+        <div class="nav-item" data-section="hero">🖼️ Hero Slider</div>
+        <div class="nav-item" data-section="analytics">📈 Analytics</div>
+        <div class="nav-item" data-section="activity">📜 Activity Log</div>
+      </nav>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="header">
+        <h1 id="pageTitle">Dashboard</h1>
+        <div class="user-info">
+          <span id="userName">Admin User</span>
+          <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+      </div>
+      
+      <!-- Dashboard Section -->
+      <section id="dashboard" class="section">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="statProjects">0</div>
+            <div class="stat-label">Total Projects</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statMessages">0</div>
+            <div class="stat-label">Total Messages</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statQuotes">0</div>
+            <div class="stat-label">Quote Requests</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statUnread">0</div>
+            <div class="stat-label">Unread Messages</div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Recent Activity</h3>
+          </div>
+          <div id="recentActivity"></div>
+        </div>
+      </section>
+      
+      <!-- Projects Section -->
+      <section id="projects" class="section hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">All Projects</h3>
+            <button class="btn btn-primary" onclick="openModal('projectModal')">Add Project</button>
+          </div>
+          <div class="filters">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="completed">Completed</button>
+            <button class="filter-btn" data-filter="in-progress">In Progress</button>
+            <button class="filter-btn" data-filter="concept">Concept</button>
+          </div>
+          <div id="projectsList"></div>
+        </div>
+      </section>
+      
+      <!-- Messages Section -->
+      <section id="messages" class="section hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Messages</h3>
+          </div>
+          <div class="search-bar">
+            <input type="text" class="search-input" placeholder="Search messages..." id="messageSearch">
+          </div>
+          <div class="filters">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="unread">Unread</button>
+            <button class="filter-btn" data-filter="resolved">Resolved</button>
+          </div>
+          <div id="messagesList"></div>
+        </div>
+      </section>
+      
+      <!-- Quote Requests Section -->
+      <section id="quotes" class="section hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Quote Requests</h3>
+          </div>
+          <div class="filters">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="new">New</button>
+            <button class="filter-btn" data-filter="in-progress">In Progress</button>
+            <button class="filter-btn" data-filter="closed">Closed</button>
+          </div>
+          <div id="quotesList"></div>
+        </div>
+      </section>
+      
+      <!-- Services Section -->
+      <section id="services" class="section hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Services</h3>
+            <button class="btn btn-primary" onclick="openModal('serviceModal')">Add Service</button>
+          </div>
+          <div id="servicesList"></div>
+        </div>
+      </section>
+      
+      <!-- Testimonials Section -->
+      <section id="testimonials" class="section hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Testimonials</h3>
+            <button class="btn btn-primary" onclick="openModal('testimonialModal')">Add Testimonial</button>
+          </div>
+          <div id="testimonialsList"></div>
+        </div>
+      </section>
+      
+      <!-- FAQs Section -->
+      <section id="faqs" class="section hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">FAQs</h3>
+            <button class="btn btn-primary" onclick="openModal('faqModal')">Add FAQ</button>
+          </div>
+          <div id="faqsList"></div>
+        </div>
+      </section>
+      
+      <!-- Team Section -->
+      <section id="team" class="section hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Team Members</h3>
+            <button class="btn btn-primary" onclick="openModal('teamModal')">Add Member</button>
+          </div>
+          <div id="teamList"></div>
+        </div>
+      </section>
+      
+      <!-- Press Section -->
+      <section id="press" class="section hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Press & Awards</h3>
+            <button class="btn btn-primary" onclick="openModal('pressModal')">Add Press</button>
+          </div>
+          <div id="pressList"></div>
+        </div>
+      </section>
+      
+      <!-- Subscribers Section -->
+      <section id="subscribers" class="section hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Newsletter Subscribers</h3>
+            <button class="btn btn-secondary" onclick="exportSubscribers()">Export CSV</button>
+          </div>
+          <div id="subscribersList"></div>
+        </div>
+      </section>
+      
+      <!-- Settings Section -->
+      <section id="settings" class="section hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Company Information</h3>
+          </div>
+          <form id="settingsForm">
+            <div class="form-group">
+              <label class="form-label">Company Name</label>
+              <input type="text" class="form-input" name="companyName">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Address</label>
+              <textarea class="form-textarea" name="address"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone</label>
+              <input type="text" class="form-input" name="phone">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-input" name="email">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Business Hours</label>
+              <input type="text" class="form-input" name="businessHours">
+            </div>
+            <button type="submit" class="btn btn-primary">Save Settings</button>
+          </form>
+        </div>
+      </section>
+      
+      <!-- SEO Section -->
+      <section id="seo" class="section hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">SEO Settings</h3>
+          </div>
+          <div class="tabs">
+            <div class="tab active" data-page="home">Home</div>
+            <div class="tab" data-page="portfolio">Portfolio</div>
+            <div class="tab" data-page="services">Services</div>
+            <div class="tab" data-page="contact">Contact</div>
+          </div>
+          <form id="seoForm">
+            <div class="form-group">
+              <label class="form-label">Meta Title</label>
+              <input type="text" class="form-input" name="title">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Meta Description</label>
+              <textarea class="form-textarea" name="description"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Keywords (comma separated)</label>
+              <input type="text" class="form-input" name="keywords">
+            </div>
+            <button type="submit" class="btn btn-primary">Save SEO</button>
+          </form>
+        </div>
+      </section>
+      
+      <!-- Hero Slider Section -->
+      <section id="hero" class="section hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Homepage Hero Slides</h3>
+            <button class="btn btn-primary" onclick="openModal('heroModal')">Add Slide</button>
+          </div>
+          <div id="heroSlidesList"></div>
+        </div>
+      </section>
+      
+      <!-- Analytics Section -->
+      <section id="analytics" class="section hidden">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="topProjectViews">0</div>
+            <div class="stat-label">Top Project Views</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Most Viewed Projects</h3>
+          </div>
+          <div id="projectViewsList"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Inquiry Sources</h3>
+          </div>
+          <div id="inquirySourcesList"></div>
+        </div>
+      </section>
+      
+      <!-- Activity Log Section -->
+      <section id="activity" class="section hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Activity Log</h3>
+          </div>
+          <div id="activityLogList"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+  
+  <!-- Modals -->
+  <div class="modal" id="projectModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add/Edit Project</h3>
+        <button class="modal-close" onclick="closeModal('projectModal')">&times;</button>
+      </div>
+      <form id="projectForm">
+        <input type="hidden" name="id">
+        <div class="form-group">
+          <label class="form-label">Title</label>
+          <input type="text" class="form-input" name="title" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="form-select" name="category">
+            <option value="Living Room">Living Room</option>
+            <option value="Kitchen">Kitchen</option>
+            <option value="Bedroom">Bedroom</option>
+            <option value="Office">Office</option>
+            <option value="Outdoor">Outdoor</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-select" name="status">
+            <option value="completed">Completed</option>
+            <option value="in-progress">In Progress</option>
+            <option value="concept">Concept</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea class="form-textarea" name="description"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Location</label>
+          <input type="text" class="form-input" name="location">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Area</label>
+          <input type="text" class="form-input" name="area">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Year</label>
+          <input type="text" class="form-input" name="year">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Featured</label>
+          <input type="checkbox" name="featured">
+        </div>
+        <button type="submit" class="btn btn-primary">Save Project</button>
+      </form>
+    </div>
+  </div>
+  
+  <div class="modal" id="serviceModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add/Edit Service</h3>
+        <button class="modal-close" onclick="closeModal('serviceModal')">&times;</button>
+      </div>
+      <form id="serviceForm">
+        <input type="hidden" name="id">
+        <div class="form-group">
+          <label class="form-label">Title</label>
+          <input type="text" class="form-input" name="title" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea class="form-textarea" name="description"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Icon (emoji)</label>
+          <input type="text" class="form-input" name="icon">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="form-select" name="category">
+            <option value="residential">Residential</option>
+            <option value="commercial">Commercial</option>
+            <option value="staging">Staging</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pricing Model</label>
+          <input type="text" class="form-input" name="pricingModel">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Service Area</label>
+          <input type="text" class="form-input" name="serviceArea">
+        </div>
+        <button type="submit" class="btn btn-primary">Save Service</button>
+      </form>
+    </div>
+  </div>
+  
+  <div class="modal" id="testimonialModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add/Edit Testimonial</h3>
+        <button class="modal-close" onclick="closeModal('testimonialModal')">&times;</button>
+      </div>
+      <form id="testimonialForm">
+        <input type="hidden" name="id">
+        <div class="form-group">
+          <label class="form-label">Client Name</label>
+          <input type="text" class="form-input" name="clientName" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Client Title</label>
+          <input type="text" class="form-input" name="clientTitle">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Content</label>
+          <textarea class="form-textarea" name="content"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rating</label>
+          <select class="form-select" name="rating">
+            <option value="5">5 Stars</option>
+            <option value="4">4 Stars</option>
+            <option value="3">3 Stars</option>
+            <option value="2">2 Stars</option>
+            <option value="1">1 Star</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Project Link</label>
+          <input type="text" class="form-input" name="projectLink">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Approved</label>
+          <input type="checkbox" name="approved">
+        </div>
+        <button type="submit" class="btn btn-primary">Save Testimonial</button>
+      </form>
+    </div>
+  </div>
+  
+  <div class="modal" id="faqModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add/Edit FAQ</h3>
+        <button class="modal-close" onclick="closeModal('faqModal')">&times;</button>
+      </div>
+      <form id="faqForm">
+        <input type="hidden" name="id">
+        <div class="form-group">
+          <label class="form-label">Question</label>
+          <input type="text" class="form-input" name="question" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Answer</label>
+          <textarea class="form-textarea" name="answer"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="form-select" name="category">
+            <option value="general">General</option>
+            <option value="process">Process</option>
+            <option value="pricing">Pricing</option>
+            <option value="timeline">Timeline</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Save FAQ</button>
+      </form>
+    </div>
+  </div>
+  
+  <div class="modal" id="teamModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add/Edit Team Member</h3>
+        <button class="modal-close" onclick="closeModal('teamModal')">&times;</button>
+      </div>
+      <form id="teamForm">
+        <input type="hidden" name="id">
+        <div class="form-group">
+          <label class="form-label">Name</label>
+          <input type="text" class="form-input" name="name" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Role</label>
+          <input type="text" class="form-input" name="role">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bio</label>
+          <textarea class="form-textarea" name="bio"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Photo URL</label>
+          <input type="text" class="form-input" name="photo">
+        </div>
+        <div class="form-group">
+          <label class="form-label">LinkedIn</label>
+          <input type="text" class="form-input" name="linkedin">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Instagram</label>
+          <input type="text" class="form-input" name="instagram">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Behance</label>
+          <input type="text" class="form-input" name="behance">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Visible</label>
+          <input type="checkbox" name="visible" checked>
+        </div>
+        <button type="submit" class="btn btn-primary">Save Team Member</button>
+      </form>
+    </div>
+  </div>
+  
+  <div class="modal" id="pressModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add/Edit Press</h3>
+        <button class="modal-close" onclick="closeModal('pressModal')">&times;</button>
+      </div>
+      <form id="pressForm">
+        <input type="hidden" name="id">
+        <div class="form-group">
+          <label class="form-label">Title</label>
+          <input type="text" class="form-input" name="title" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Publication</label>
+          <input type="text" class="form-input" name="publication">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Year</label>
+          <input type="text" class="form-input" name="year">
+        </div>
+        <div class="form-group">
+          <label class="form-label">URL</label>
+          <input type="text" class="form-input" name="url">
+        </div>
+        <button type="submit" class="btn btn-primary">Save Press</button>
+      </form>
+    </div>
+  </div>
+  
+  <div class="modal" id="heroModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add/Edit Hero Slide</h3>
+        <button class="modal-close" onclick="closeModal('heroModal')">&times;</button>
+      </div>
+      <form id="heroForm">
+        <input type="hidden" name="id">
+        <div class="form-group">
+          <label class="form-label">Headline</label>
+          <input type="text" class="form-input" name="headline">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subheadline</label>
+          <input type="text" class="form-input" name="subheadline">
+        </div>
+        <div class="form-group">
+          <label class="form-label">CTA Text</label>
+          <input type="text" class="form-input" name="ctaText">
+        </div>
+        <div class="form-group">
+          <label class="form-label">CTA Link</label>
+          <input type="text" class="form-input" name="ctaLink">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Order</label>
+          <input type="number" class="form-input" name="order" value="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Active</label>
+          <input type="checkbox" name="active" checked>
+        </div>
+        <button type="submit" class="btn btn-primary">Save Slide</button>
+      </form>
+    </div>
+  </div>
+  
+  <div id="toast" class="toast hidden"></div>
+
+  <script>
+    // API Base URL
+    const API = '';
+    let token = localStorage.getItem('token');
+    
+    // Check auth
+    if (!token) {
+      window.location.href = '/login.html';
+    }
+    
+    // Navigation
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const section = item.dataset.section;
+        showSection(section);
+      });
+    });
+    
+    function showSection(section) {
+      document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+      document.getElementById(section).classList.remove('hidden');
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.querySelector(`[data-section="${section}"]`).classList.add('active');
+      
+      const titles = {
+        dashboard: 'Dashboard', projects: 'Projects', messages: 'Messages',
+        quotes: 'Quote Requests', services: 'Services', testimonials: 'Testimonials',
+        faqs: 'FAQs', team: 'Team', press: 'Press & Awards', subscribers: 'Subscribers',
+        settings: 'Site Settings', seo: 'SEO Settings', hero: 'Hero Slider',
+        analytics: 'Analytics', activity: 'Activity Log'
+      };
+      document.getElementById('pageTitle').textContent = titles[section] || section;
+      
+      // Load data for section
+      loadSectionData(section);
+    }
+    
+    async function loadSectionData(section) {
+      const headers = { 'Authorization': `Bearer ${token}` };
+      
+      switch(section) {
+        case 'dashboard': loadDashboard(); break;
+        case 'projects': loadProjects(); break;
+        case 'messages': loadMessages(); break;
+        case 'quotes': loadQuotes(); break;
+        case 'services': loadServices(); break;
+        case 'testimonials': loadTestimonials(); break;
+        case 'faqs': loadFaqs(); break;
+        case 'team': loadTeam(); break;
+        case 'press': loadPress(); break;
+        case 'subscribers': loadSubscribers(); break;
+        case 'settings': loadSettings(); break;
+        case 'seo': loadSeo(); break;
+        case 'hero': loadHero(); break;
+        case 'analytics': loadAnalytics(); break;
+        case 'activity': loadActivity(); break;
+      }
+    }
+    
+    // Dashboard
+    async function loadDashboard() {
+      try {
+        const res = await fetch('/api/analytics', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.status === 'success') {
+          document.getElementById('statProjects').textContent = data.data.totalProjects;
+          document.getElementById('statMessages').textContent = data.data.totalMessages;
+          document.getElementById('statQuotes').textContent = data.data.totalQuotes;
+          document.getElementById('statUnread').textContent = data.data.unreadMessages;
+          
+          const activityHtml = data.data.recentActivity.map(a => 
+            `<div style="padding: 0.5rem 0; border-bottom: 1px solid var(--beige);">
+              <strong>${a.action}</strong> - ${new Date(a.createdAt).toLocaleString()}
+            </div>`
+          ).join('');
+          document.getElementById('recentActivity').innerHTML = activityHtml || 'No recent activity';
+        }
+      } catch (e) { console.error(e); }
+    }
+    
+    // Projects
+    async function loadProjects() {
+      try {
+        const res = await fetch('/api/projects', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.status === 'success') {
+          const projects = data.data;
+          const html = `<table class="table">
+            <thead><tr><th>Title</th><th>Category</th><th>Status</th><th>Views</th><th>Actions</th></tr></thead>
+            <tbody>${projects.map(p => `
+              <tr>
+                <td>${p.title}</td>
+                <td>${p.category}</td>
+                <td><span class="badge badge-${p.status === 'completed' ? 'success' : p.status === 'in-progress' ? 'warning' : 'info'}">${p.status}</span></td>
+                <td>${p.views || 0}</td>
+                <td>
+                  <button class="btn btn-sm btn-secondary" onclick="editProject('${p._id}')">Edit</button>
+                  <button class="btn btn-sm btn-danger" onclick="deleteProject('${p._id}')">Delete</button>
+                </td>
+              </tr>
+            `).join('')}</tbody></table>`;
+          document.getElementById('projectsList').innerHTML = html;
+        }
+      } catch (e) { console.error(e); }
+    }
+    
+    // Messages
+    async function loadMessages() {
+      try {
+        const res = await fetch('/api/messages', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.status === 'success') {
+          const messages = data.data;
+          const html = `<table class="table">
+            <thead><tr><th>Name</th><th>Email</th><th>Source</th><th>Read</th><th>Resolved</th><th>Actions</th></tr></thead>
+            <tbody>${messages.map(m => `
+              <tr>
+                <td>${m.firstName} ${m.lastName || ''}</td>
+                <td>${m.email}</td>
+                <td>${m.source || 'direct'}</td>
+                <td>${m.read ? '✓' : '✗'}</td>
+                <td>${m.resolved ? '✓' : '✗'}</td>
+                <td>
+                  <button class="btn btn-sm btn-secondary" onclick="viewMessage('${m._id}')">View</button>
+                  <button class="btn btn-sm btn-success" onclick="resolveMessage('${m._id}')">${m.resolved ? 'Unresolve' : 'Resolve'}</button>
+                </td>
+              </tr>
+            `).join('')}</tbody></table>`;
+          document.getElementById('messagesList').innerHTML = html;
+        }
+      } catch (e) { console.error(e); }
+    }
+    
+    // Quotes
+    async function loadQuotes() {
+      try {
+        const res = await fetch('/api/quotes', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.status === 'success') {
+          const quotes = data.data;
+          const html = `<table class="table">
+            <thead><tr><th>Name</th><th>Email</th><th>Project Type</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>${quotes.map(q => `
+              <tr>
+                <td>${q.name}</td>
+                <td>${q.email}</td>
+                <td>${q.projectType || '-'}</td>
+                <td><span class="badge badge-${q.status === 'new' ? 'warning' : q.status === 'in-progress' ? 'info' : 'success'}">${q.status}</span></td>
+                <td>
+                  <button class="btn btn-sm btn-secondary" onclick="editQuote('${q._id}')">Edit</button>
+                </td>
+              </tr>
+            `).join('')}</tbody></table>`;
+          document.getElementById('quotesList').innerHTML = html;
+        }
+      } catch (e) { console.error(e); }
+    }
+    
+    // Services
+    async function loadServices() {
+      try {
+        const res = await fetch('/api/services', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.status === 'success') {
+          const services = data.data;
+          const html = `<table class="table">
+            <thead><tr><th>Title</th><th>Category</th><th>Icon</th><th>Actions</th></tr></thead>
+            <tbody>${services.map(s => `
+              <tr>
+                <td>${s.title}</td>
+                <td>${s.category}</td>
+                <td>${s.icon}</td>
+                <td>
+                  <button class="btn btn-sm btn-secondary" onclick="editService('${s._id}')">Edit</button>
+                  <button class="btn btn-sm btn-danger" onclick="deleteService('${s._id}')">Delete</button>
+                </td>
+              </tr>
+            `).join('')}</tbody></table>`;
+          document.getElementById('servicesList').innerHTML = html;
+        }
+      } catch (e) { console.error(e); }
+    }
+    
+    // Testimonials
+    async function loadTestimonials() {
+      try {
+        const res = await fetch('/api/testimonials', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.status === 'success') {
+          const testimonials = data.data;
+          const html = `<table class="table">
+            <thead><tr><th>Client</th><th>Rating</th><th>Approved</th><th>Actions</th></tr></thead>
+            <tbody>${testimonials.map(t => `
+              <tr>
+                <td>${t.clientName}</td>
+                <td>${'★'.repeat(t.rating)}${'☆'.repeat(5-t.rating)}</td>
+                <td>${t.approved ? '✓' : '✗'}</td>
+                <td>
+                  <button class="btn btn-sm btn-secondary" onclick="editTestimonial('${t._id}')">Edit</button>
+                  <button class="btn btn-sm btn-danger" onclick="deleteTestimonial('${t._id}')">Delete</button>
+                </td>
+              </tr>
+            `).join('')}</tbody></table>`;
+          document.getElementById('testimonialsList').innerHTML = html;
+        }
+      } catch (e) { console.error(e); }
+    }
+    
+    // FAQs
+    async function loadFaqs() {
+      try {
+        const res = await fetch('/api/faqs', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.status === 'success') {
+          const faqs = data.data;
+          const html = `<table class="table">
+            <thead><tr><th>Question</th><th>Category</th><th>Actions</th></tr></thead>
+            <tbody>${faqs.map(f => `
+              <tr>
+                <td>${f.question}</td>
+                <td>${f.category}</td>
+                <td>
+                  <button class="btn btn-sm btn-secondary" onclick="editFaq('${f._id}')">Edit</button>
+                  <button class="btn btn-sm btn-danger" onclick="deleteFaq('${f._id}')">Delete</button>
+                </td>
+              </tr>
+            `).join('')}</tbody></table>`;
+          document.getElementById('faqsList').innerHTML = html;
+        }
+      } catch (e) { console.error(e); }
+    }
+    
+    // Team
+    async function loadTeam() {
+      try {
+        const res = await fetch('/api/team?includeHidden=true', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.status === 'success') {
+          const team = data.data;
+          const html = `<table class="table">
+            <thead><tr><th>Name</th><th>Role</th><th>Visible</th><th>Actions</th></tr></thead>
+            <tbody>${team.map(m => `
+              <tr>
+                <td>${m.name}</td>
+                <td>${m.role}</td>
+                <td>${m.visible ? '✓' : '✗'}</td>
+                <td>
+                  <button class="btn btn-sm btn-secondary" onclick="editTeam('${m._id}')">Edit</button>
+                  <button class="btn btn-sm btn-danger" onclick="deleteTeam('${m._id}')">Delete</button>
+                </td>
+              </tr>
+            `).join('')}</tbody></table>`;
+          document.getElementById('teamList').innerHTML = html;
+        }
+      } catch (e) { console.error(e); }
+    }
+    
+    // Press
+    async function loadPress() {
+      try {
+        const res = await fetch('/api/press', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.status === 'success') {
+          const press = data.data;
+          const html = `<table class="table">
+            <thead><tr><th>Title</th><th>Publication</th><th>Year</th><th>Actions</th></tr></thead>
+            <tbody>${press.map(p => `
+              <tr>
+                <td>${p.title}</td>
+                <td>${p.publication || '-'}</td>
+                <td>${p.year || '-'}</td>
+                <td>
+                  <button class="btn btn-sm btn-secondary" onclick="editPress('${p._id}')">Edit</button>
+                  <button class="btn btn-sm btn-danger" onclick="deletePress('${p._id}')">Delete</button>
+                </td>
+              </tr>
+            `).join('')}</tbody></table>`;
+          document.getElementById('pressList').innerHTML = html;
+        }
+      } catch (e) { console.error(e); }
+    }
+    
+    // Subscribers
+    async function loadSubscribers() {
+      try {
+        const res = await fetch('/api/subscribers', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.status === 'success') {
+          const subscribers = data.data;
+          const html = `<table class="table">
+            <thead><tr><th>Email</th><th>Subscribed</th><th>Actions</th></tr></thead>
+            <tbody>${subscribers.map(s => `
+              <tr>
+                <td>${s.email}</td>
+                <td>${new Date(s.subscribedAt).toLocaleDateString()}</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteSubscriber('${s._id}')">Remove</button></td>
+              </tr>
+            `).join('')}</tbody></table>`;
+          document.getElementById('subscribersList').innerHTML = html;
+        }
+      } catch (e) { console.error(e); }
+    }
+    
+    // Settings
+    async function loadSettings() {
+      try {
+        const res = await fetch('/api/settings', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.status === 'success') {
+          const settings = data.data.company || {};
+          const form = document.getElementById('settingsForm');
+          form.companyName.value = settings.name || '';
+          form.address.value = settings.address || '';
+          form.phone.value = settings.phone || '';
+          form.email.value = settings.email || '';
+          form.businessHours.value = settings.businessHours || '';
+        }
+      } catch (e) { console.error(e); }
+    }
+    
+    // SEO
+    async function loadSeo() {
+      try {
+        const res = await fetch('/api/seo', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.status === 'success') {
+          window.seoData = data.data;
+        }
+      } catch (e) { console.error(e); }
+    }
+    
+    // Hero
+    async function loadHero() {
+      try {
+        const res = await fetch('/api/hero-slides', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.status === 'success') {
+          const slides = data.data;
+          const html = `<table class="table">
+            <thead><tr><th>Headline</th><th>Order</th><th>Active</th><th>Actions</th></tr></thead>
+            <tbody>${slides.map(s => `
+              <tr>
+                <td>${s.headline}</td>
+                <td>${s.order}</td>
+                <td>${s.active ? '✓' : '✗'}</td>
+                <td>
+                  <button class="btn btn-sm btn-secondary" onclick="editHero('${s._id}')">Edit</button>
+                  <button class="btn btn-sm btn-danger" onclick="deleteHero('${s._id}')">Delete</button>
+                </td>
+              </tr>
+            `).join('')}</tbody></table>`;
+          document.getElementById('heroSlidesList').innerHTML = html;
+        }
+      } catch (e) { console.error(e); }
+    }
+    
+    // Analytics
+    async function loadAnalytics() {
+      try {
+        const [viewsRes, sourcesRes] = await Promise.all([
+          fetch('/api/analytics/project-views', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('/api/analytics/inquiry-sources', { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+        
+        const viewsData = await viewsRes.json();
+        const sourcesData = await sourcesRes.json();
+        
+        if (viewsData.status === 'success') {
+          const html = `<table class="table">
+            <thead><tr><th>Project</th><th>Views</th></tr></thead>
+            <tbody>${viewsData.data.map(p => `
+              <tr><td>${p.title}</td><td>${p.views}</td></tr>
+            `).join('')}</tbody></table>`;
+          document.getElementById('projectViewsList').innerHTML = html;
+          document.getElementById('topProjectViews').textContent = viewsData.data[0]?.views || 0;
+        }
+        
+        if (sourcesData.status === 'success') {
+          const html = `<table class="table">
+            <thead><tr><th>Source</th><th>Count</th></tr></thead>
+            <tbody>${sourcesData.data.messages.map(s => `
+              <tr><td>${s._id || 'direct'}</td><td>${s.count}</td></tr>
+            `).join('')}</tbody></table>`;
+          document.getElementById('inquirySourcesList').innerHTML = html;
+        }
+      } catch (e) { console.error(e); }
+    }
+    
+    // Activity
+    async function loadActivity() {
+      try {
+        const res = await fetch('/api/activity-logs?limit=50', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.status === 'success') {
+          const html = `<table class="table">
+            <thead><tr><th>Action</th><th>Details</th><th>Date</th></tr></thead>
+            <tbody>${data.data.map(l => `
+              <tr>
+                <td>${l.action}</td>
+                <td>${JSON.stringify(l.details || {}).substring(0, 50)}</td>
+                <td>${new Date(l.createdAt).toLocaleString()}</td>
+              </tr>
+            `).join('')}</tbody></table>`;
+          document.getElementById('activityLogList').innerHTML = html;
+        }
+      } catch (e) { console.error(e); }
+    }
+    
+    // Modal functions
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+    
+    // Toast
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = `toast toast-${type}`;
+      setTimeout(() => toast.classList.add('hidden'), 3000);
+    }
+    
+    // Logout
+    function logout() {
+      localStorage.removeItem('token');
+      window.location.href = '/login.html';
+    }
+    
+    // Export
+    function exportSubscribers() {
+      window.open('/api/export/subscribers', '_blank');
+    }
+    
+    // Form submissions
+    document.getElementById('projectForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const data = Object.fromEntries(new FormData(form));
+      data.featured = form.featured.checked;
+      
+      const method = data.id ? 'PUT' : 'POST';
+      const url = data.id ? `/api/projects/${data.id}` : '/api/projects';
+      
+      try {
+        const res = await fetch(url, {
+          method,
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (res.ok) {
+          showToast('Project saved');
+          closeModal('projectModal');
+          loadProjects();
+        }
+      } catch (e) { showToast('Error saving project', 'error'); }
+    });
+    
+    document.getElementById('serviceForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const data = Object.fromEntries(new FormData(form));
+      
+      const method = data.id ? 'PUT' : 'POST';
+      const url = data.id ? `/api/services/${data.id}` : '/api/services';
+      
+      try {
+        const res = await fetch(url, {
+          method,
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (res.ok) {
+          showToast('Service saved');
+          closeModal('serviceModal');
+          loadServices();
+        }
+      } catch (e) { showToast('Error saving service', 'error'); }
+    });
+    
+    document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const data = {
+        name: form.companyName.value,
+        address: form.address.value,
+        phone: form.phone.value,
+        email: form.email.value,
+        businessHours: form.businessHours.value
+      };
+      
+      try {
+        await fetch('/api/settings/company', {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data })
+        });
+        showToast('Settings saved');
+      } catch (e) { showToast('Error saving settings', 'error'); }
+    });
+    
+    // Initialize
+    loadDashboard();
+  </script>
+</body>
+</html>
