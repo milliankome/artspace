@@ -55,7 +55,7 @@ router.get('/services', async (req, res) => {
 });
 
 // POST create service (admin only)
-router.post('/services', protect, restrictTo('admin'), async (req, res) => {
+router.post('/services', protect, restrictTo('super_admin', 'editor', 'admin'), async (req, res) => {
   try {
     const { title, description, icon, pricingModel, serviceArea, category } = req.body;
     const service = {
@@ -78,7 +78,7 @@ router.post('/services', protect, restrictTo('admin'), async (req, res) => {
 });
 
 // PUT update service
-router.put('/services/:id', protect, restrictTo('admin'), async (req, res) => {
+router.put('/services/:id', protect, restrictTo('super_admin', 'editor', 'admin'), async (req, res) => {
   try {
     const { id } = req.params;
     const update = { ...req.body, updatedAt: new Date() };
@@ -97,7 +97,7 @@ router.put('/services/:id', protect, restrictTo('admin'), async (req, res) => {
 });
 
 // DELETE service
-router.delete('/services/:id', protect, restrictTo('admin'), async (req, res) => {
+router.delete('/services/:id', protect, restrictTo('super_admin', 'admin'), async (req, res) => {
   try {
     const { id } = req.params;
     const result = await mongoose.connection.db.collection('services').deleteOne({ _id: new mongoose.Types.ObjectId(id) });
@@ -124,7 +124,7 @@ router.get('/testimonials', async (req, res) => {
 });
 
 // POST create testimonial
-router.post('/testimonials', protect, restrictTo('admin'), async (req, res) => {
+router.post('/testimonials', protect, restrictTo('super_admin', 'editor', 'admin'), async (req, res) => {
   try {
     const { clientName, clientTitle, content, rating, projectLink, image, approved } = req.body;
     const testimonial = {
@@ -148,7 +148,7 @@ router.post('/testimonials', protect, restrictTo('admin'), async (req, res) => {
 });
 
 // PUT update testimonial
-router.put('/testimonials/:id', protect, restrictTo('admin'), async (req, res) => {
+router.put('/testimonials/:id', protect, restrictTo('super_admin', 'editor', 'admin'), async (req, res) => {
   try {
     const { id } = req.params;
     const update = { ...req.body, updatedAt: new Date() };
@@ -167,7 +167,7 @@ router.put('/testimonials/:id', protect, restrictTo('admin'), async (req, res) =
 });
 
 // DELETE testimonial
-router.delete('/testimonials/:id', protect, restrictTo('admin'), async (req, res) => {
+router.delete('/testimonials/:id', protect, restrictTo('super_admin', 'admin'), async (req, res) => {
   try {
     const { id } = req.params;
     const result = await mongoose.connection.db.collection('testimonials').deleteOne({ _id: new mongoose.Types.ObjectId(id) });
@@ -196,7 +196,7 @@ router.get('/faqs', async (req, res) => {
 });
 
 // POST create FAQ
-router.post('/faqs', protect, restrictTo('admin'), async (req, res) => {
+router.post('/faqs', protect, restrictTo('super_admin', 'editor', 'admin'), async (req, res) => {
   try {
     const { question, answer, category, order } = req.body;
     const faq = {
@@ -217,7 +217,7 @@ router.post('/faqs', protect, restrictTo('admin'), async (req, res) => {
 });
 
 // PUT update FAQ
-router.put('/faqs/:id', protect, restrictTo('admin'), async (req, res) => {
+router.put('/faqs/:id', protect, restrictTo('super_admin', 'editor', 'admin'), async (req, res) => {
   try {
     const { id } = req.params;
     const update = { ...req.body, updatedAt: new Date() };
@@ -236,7 +236,7 @@ router.put('/faqs/:id', protect, restrictTo('admin'), async (req, res) => {
 });
 
 // DELETE FAQ
-router.delete('/faqs/:id', protect, restrictTo('admin'), async (req, res) => {
+router.delete('/faqs/:id', protect, restrictTo('super_admin', 'admin'), async (req, res) => {
   try {
     const { id } = req.params;
     const result = await mongoose.connection.db.collection('faqs').deleteOne({ _id: new mongoose.Types.ObjectId(id) });
@@ -253,7 +253,7 @@ router.delete('/faqs/:id', protect, restrictTo('admin'), async (req, res) => {
 // ============================================
 
 // GET all quote requests
-router.get('/quotes', protect, restrictTo('admin', 'editor', 'lead_manager'), async (req, res) => {
+router.get('/quotes', protect, restrictTo('super_admin', 'editor', 'lead_manager', 'admin'), async (req, res) => {
   try {
     const { status } = req.query;
     const filter = status ? { status } : {};
@@ -289,7 +289,7 @@ router.post('/quotes', async (req, res) => {
 });
 
 // PUT update quote request
-router.put('/quotes/:id', protect, restrictTo('admin', 'editor', 'lead_manager'), async (req, res) => {
+router.put('/quotes/:id', protect, restrictTo('super_admin', 'editor', 'lead_manager', 'admin'), async (req, res) => {
   try {
     const { id } = req.params;
     const { status, notes } = req.body;
@@ -327,7 +327,7 @@ router.get('/team', async (req, res) => {
 });
 
 // POST create team member
-router.post('/team', protect, restrictTo('admin'), async (req, res) => {
+router.post('/team', protect, restrictTo('super_admin', 'admin'), async (req, res) => {
   try {
     const { name, role, bio, photo, socialLinks, order, visible } = req.body;
     const member = {
@@ -351,7 +351,7 @@ router.post('/team', protect, restrictTo('admin'), async (req, res) => {
 });
 
 // PUT update team member
-router.put('/team/:id', protect, restrictTo('admin'), async (req, res) => {
+router.put('/team/:id', protect, restrictTo('super_admin', 'editor', 'admin'), async (req, res) => {
   try {
     const { id } = req.params;
     const update = { ...req.body, updatedAt: new Date() };
@@ -370,7 +370,7 @@ router.put('/team/:id', protect, restrictTo('admin'), async (req, res) => {
 });
 
 // DELETE team member
-router.delete('/team/:id', protect, restrictTo('admin'), async (req, res) => {
+router.delete('/team/:id', protect, restrictTo('super_admin', 'admin'), async (req, res) => {
   try {
     const { id } = req.params;
     const result = await mongoose.connection.db.collection('teamMembers').deleteOne({ _id: new mongoose.Types.ObjectId(id) });
@@ -387,7 +387,7 @@ router.delete('/team/:id', protect, restrictTo('admin'), async (req, res) => {
 // ============================================
 
 // GET all settings
-router.get('/settings', protect, restrictTo('admin', 'editor'), async (req, res) => {
+router.get('/settings', protect, restrictTo('super_admin', 'editor', 'admin'), async (req, res) => {
   try {
     const settings = await mongoose.connection.db.collection('siteSettings').find({}).toArray();
     const result = {};
@@ -399,7 +399,7 @@ router.get('/settings', protect, restrictTo('admin', 'editor'), async (req, res)
 });
 
 // PUT update settings
-router.put('/settings/:key', protect, restrictTo('admin'), async (req, res) => {
+router.put('/settings/:key', protect, restrictTo('super_admin', 'admin'), async (req, res) => {
   try {
     const { key } = req.params;
     const { data } = req.body;
@@ -420,7 +420,7 @@ router.put('/settings/:key', protect, restrictTo('admin'), async (req, res) => {
 // ============================================
 
 // GET subscribers
-router.get('/subscribers', protect, restrictTo('admin'), async (req, res) => {
+router.get('/subscribers', protect, restrictTo('super_admin', 'admin'), async (req, res) => {
   try {
     const subscribers = await mongoose.connection.db.collection('subscribers').find({}).toArray();
     res.json({ status: 'success', data: subscribers });
@@ -471,7 +471,7 @@ router.get('/press', async (req, res) => {
 });
 
 // POST press/award
-router.post('/press', protect, restrictTo('admin'), async (req, res) => {
+router.post('/press', protect, restrictTo('super_admin', 'editor', 'admin'), async (req, res) => {
   try {
     const { title, publication, year, url, image } = req.body;
     const item = {
@@ -492,7 +492,7 @@ router.post('/press', protect, restrictTo('admin'), async (req, res) => {
 });
 
 // DELETE press/award
-router.delete('/press/:id', protect, restrictTo('admin'), async (req, res) => {
+router.delete('/press/:id', protect, restrictTo('super_admin', 'admin'), async (req, res) => {
   try {
     const { id } = req.params;
     await mongoose.connection.db.collection('pressAwards').deleteOne({ _id: new mongoose.Types.ObjectId(id) });
@@ -518,7 +518,7 @@ router.get('/style-library', async (req, res) => {
 });
 
 // POST style item
-router.post('/style-library', protect, restrictTo('admin'), upload.single('image'), async (req, res) => {
+router.post('/style-library', protect, restrictTo('super_admin', 'admin'), upload.single('image'), async (req, res) => {
   try {
     const { name, type, brand, color, notes } = req.body;
     const item = {
@@ -539,7 +539,7 @@ router.post('/style-library', protect, restrictTo('admin'), upload.single('image
 });
 
 // DELETE style item
-router.delete('/style-library/:id', protect, restrictTo('admin'), async (req, res) => {
+router.delete('/style-library/:id', protect, restrictTo('super_admin', 'admin'), async (req, res) => {
   try {
     const { id } = req.params;
     await mongoose.connection.db.collection('styleLibrary').deleteOne({ _id: new mongoose.Types.ObjectId(id) });
@@ -566,7 +566,7 @@ router.get('/floor-plans', async (req, res) => {
 });
 
 // POST floor plan
-router.post('/floor-plans', protect, restrictTo('admin'), upload.single('file'), async (req, res) => {
+router.post('/floor-plans', protect, restrictTo('super_admin', 'admin'), upload.single('file'), async (req, res) => {
   try {
     const { projectId, title, description, downloadPermission } = req.body;
     const plan = {
@@ -586,7 +586,7 @@ router.post('/floor-plans', protect, restrictTo('admin'), upload.single('file'),
 });
 
 // DELETE floor plan
-router.delete('/floor-plans/:id', protect, restrictTo('admin'), async (req, res) => {
+router.delete('/floor-plans/:id', protect, restrictTo('super_admin', 'admin'), async (req, res) => {
   try {
     const { id } = req.params;
     await mongoose.connection.db.collection('floorPlans').deleteOne({ _id: new mongoose.Types.ObjectId(id) });
@@ -601,7 +601,7 @@ router.delete('/floor-plans/:id', protect, restrictTo('admin'), async (req, res)
 // ============================================
 
 // GET activity logs
-router.get('/activity-logs', protect, restrictTo('admin'), async (req, res) => {
+router.get('/activity-logs', protect, restrictTo('super_admin', 'admin'), async (req, res) => {
   try {
     const { limit = 50, page = 1 } = req.query;
     const logs = await mongoose.connection.db.collection('activityLogs')
@@ -671,7 +671,7 @@ router.get('/project-categories', async (req, res) => {
 });
 
 // POST project category
-router.post('/project-categories', protect, restrictTo('admin'), async (req, res) => {
+router.post('/project-categories', protect, restrictTo('super_admin', 'admin'), async (req, res) => {
   try {
     const { name, description } = req.body;
     const result = await mongoose.connection.db.collection('projectCategories').insertOne({
@@ -686,7 +686,7 @@ router.post('/project-categories', protect, restrictTo('admin'), async (req, res
 });
 
 // DELETE project category
-router.delete('/project-categories/:id', protect, restrictTo('admin'), async (req, res) => {
+router.delete('/project-categories/:id', protect, restrictTo('super_admin', 'admin'), async (req, res) => {
   try {
     await mongoose.connection.db.collection('projectCategories').deleteOne({ _id: new mongoose.Types.ObjectId(req.params.id) });
     res.json({ status: 'success', message: 'Category deleted' });
@@ -776,7 +776,7 @@ router.get('/seo', async (req, res) => {
 });
 
 // PUT update SEO settings for a page
-router.put('/seo/:page', protect, restrictTo('admin'), async (req, res) => {
+router.put('/seo/:page', protect, restrictTo('super_admin', 'editor', 'admin'), async (req, res) => {
   try {
     const { page } = req.params;
     const { title, description, keywords, ogImage } = req.body;
@@ -807,7 +807,7 @@ router.get('/hero-slides', async (req, res) => {
 });
 
 // POST create hero slide
-router.post('/hero-slides', protect, restrictTo('admin'), upload.single('image'), async (req, res) => {
+router.post('/hero-slides', protect, restrictTo('super_admin', 'editor', 'admin'), upload.single('image'), async (req, res) => {
   try {
     const { headline, subheadline, ctaText, ctaLink, order, active } = req.body;
     const slide = {
@@ -829,7 +829,7 @@ router.post('/hero-slides', protect, restrictTo('admin'), upload.single('image')
 });
 
 // PUT update hero slide
-router.put('/hero-slides/:id', protect, restrictTo('admin'), upload.single('image'), async (req, res) => {
+router.put('/hero-slides/:id', protect, restrictTo('super_admin', 'editor', 'admin'), upload.single('image'), async (req, res) => {
   try {
     const { id } = req.params;
     const update = { ...req.body };
@@ -851,7 +851,7 @@ router.put('/hero-slides/:id', protect, restrictTo('admin'), upload.single('imag
 });
 
 // DELETE hero slide
-router.delete('/hero-slides/:id', protect, restrictTo('admin'), async (req, res) => {
+router.delete('/hero-slides/:id', protect, restrictTo('super_admin', 'admin'), async (req, res) => {
   try {
     const { id } = req.params;
     await mongoose.connection.db.collection('heroSlides').deleteOne({ _id: new mongoose.Types.ObjectId(id) });
@@ -863,7 +863,7 @@ router.delete('/hero-slides/:id', protect, restrictTo('admin'), async (req, res)
 });
 
 // PUT reorder hero slides
-router.put('/hero-slides/reorder', protect, restrictTo('admin'), async (req, res) => {
+router.put('/hero-slides/reorder', protect, restrictTo('super_admin', 'editor', 'admin'), async (req, res) => {
   try {
     const { slides } = req.body; // Array of { id, order }
     const bulkOps = slides.map(s => ({
@@ -1077,7 +1077,7 @@ router.patch('/users/:id/role', protect, restrictTo('super_admin'), async (req, 
 // ============================================
 
 // Export subscribers as CSV
-router.get('/export/subscribers', protect, restrictTo('admin'), async (req, res) => {
+router.get('/export/subscribers', protect, restrictTo('super_admin', 'admin'), async (req, res) => {
   try {
     const subscribers = await mongoose.connection.db.collection('subscribers').find({}).toArray();
     const csv = 'Email,Subscribed At\n' + 
@@ -1091,7 +1091,7 @@ router.get('/export/subscribers', protect, restrictTo('admin'), async (req, res)
 });
 
 // Export messages as CSV
-router.get('/export/messages', protect, restrictTo('admin'), async (req, res) => {
+router.get('/export/messages', protect, restrictTo('super_admin', 'admin'), async (req, res) => {
   try {
     const messages = await mongoose.connection.db.collection('messages').find({}).toArray();
     const csv = 'First Name,Last Name,Email,Message,Source,Read,Resolved,Created At\n' + 

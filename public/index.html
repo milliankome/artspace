@@ -1553,8 +1553,13 @@ const API_BASE = ''; // Empty = same origin, or set to 'https://your-api.com'
 // API Helper
 async function api(endpoint, options = {}) {
   const url = API_BASE + endpoint;
+  const token = localStorage.getItem('token');
   const config = {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      ...options.headers 
+    },
     credentials: 'include',
     ...options
   };
@@ -1704,9 +1709,10 @@ const csrfToken = generateCSRF();
    NAVIGATION
 ══════════════════════════════════════════════ */
 function showPage(page) {
-  // Admin check
+  // Admin check - allow all admin-level roles
   if (page === 'admin') {
-    if (!currentUser || currentUser.role !== 'admin') {
+    const adminRoles = ['admin', 'super_admin', 'editor', 'lead_manager'];
+    if (!currentUser || !adminRoles.includes(currentUser.role)) {
       openAuthModal(); return;
     }
   }
@@ -1938,7 +1944,7 @@ function handleLogin() {
 
   // Validation (XSS + format)
   if (!validateEmail(email)) { showAuthError('Please enter a valid email address.'); return; }
-  if (!validateLength(pass, 6)) { showAuthError('Password must be at least 6 characters.'); return; }
+  if (!pass || pass.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
 
   // Rate limiting
   if (!checkRateLimit(email)) {

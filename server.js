@@ -420,7 +420,7 @@ projectsRouter.get('/:id', async (req, res) => {
 });
 
 // POST create project (admin only)
-projectsRouter.post('/', protect, restrictTo('admin'),
+projectsRouter.post('/', protect, restrictTo('super_admin', 'editor', 'admin'),
   upload.fields([{ name: 'images', maxCount: 10 }, { name: 'beforeImage', maxCount: 1 }]),
   validateBody({
     title:       { required: true, minLen: 3, maxLen: 120 },
@@ -459,7 +459,7 @@ projectsRouter.post('/', protect, restrictTo('admin'),
 );
 
 // PATCH update project (admin only)
-projectsRouter.patch('/:id', protect, restrictTo('admin'), async (req, res) => {
+projectsRouter.patch('/:id', protect, restrictTo('super_admin', 'editor', 'admin'), async (req, res) => {
   try {
     const allowed = ['title','category','description','location','area','year','featured'];
     const updates = {};
@@ -475,7 +475,7 @@ projectsRouter.patch('/:id', protect, restrictTo('admin'), async (req, res) => {
 });
 
 // DELETE project (admin only)
-projectsRouter.delete('/:id', protect, restrictTo('admin'), async (req, res) => {
+projectsRouter.delete('/:id', protect, restrictTo('super_admin', 'admin'), async (req, res) => {
   try {
     const project = await Project.findByIdAndDelete(req.params.id);
     if (!project) return res.status(404).json({ error: 'Project not found.' });
@@ -517,8 +517,8 @@ messagesRouter.post('/', contactLimiter,
   }
 );
 
-// GET all messages (admin only)
-messagesRouter.get('/', protect, restrictTo('admin'), async (req, res) => {
+// GET all messages (admin only - supports super_admin, editor, lead_manager)
+messagesRouter.get('/', protect, restrictTo('super_admin', 'editor', 'lead_manager', 'admin'), async (req, res) => {
   try {
     const messages = await Message.find().sort({ createdAt: -1 });
     res.json({ status: 'success', data: messages });
@@ -528,7 +528,7 @@ messagesRouter.get('/', protect, restrictTo('admin'), async (req, res) => {
 });
 
 // PATCH mark message as read (admin only)
-messagesRouter.patch('/:id/read', protect, restrictTo('admin'), async (req, res) => {
+messagesRouter.patch('/:id/read', protect, restrictTo('super_admin', 'editor', 'lead_manager', 'admin'), async (req, res) => {
   try {
     const msg = await Message.findByIdAndUpdate(req.params.id, { read: true }, { new: true });
     if (!msg) return res.status(404).json({ error: 'Message not found.' });
