@@ -858,6 +858,11 @@
       color: var(--cream);
       border-left-color: var(--gold);
     }
+    .admin-nav-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.1);
+      margin: 1rem 0;
+    }
     .admin-content { padding: 3rem; }
     .admin-header { margin-bottom: 2.5rem; }
     .admin-header h1 { font-family: var(--serif); font-size: 2rem; color: var(--brown-deep); font-weight: 300; }
@@ -876,6 +881,7 @@
     .admin-card-num { font-family: var(--serif); font-size: 2.5rem; color: var(--brown-deep); font-weight: 300; line-height: 1; }
     .admin-card-label { font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-light); margin-top: 0.5rem; }
     .admin-card-icon { font-size: 1.5rem; margin-bottom: 1rem; }
+    .admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
     .admin-section { background: var(--white); padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-card); }
     .admin-section h2 { font-family: var(--serif); font-size: 1.3rem; color: var(--brown-deep); font-weight: 400; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--beige); }
     .upload-zone {
@@ -934,6 +940,9 @@
     .badge-bedroom { background: #f3e5f5; color: #7b1fa2; }
     .badge-office { background: #e3f2fd; color: #1565c0; }
     .badge-outdoor { background: #e8f5e9; color: #2e7d32; }
+    .badge-new { background: #e3f2fd; color: #1565c0; }
+    .badge-progress { background: #fff3e0; color: #e65100; }
+    .badge-closed { background: #e8f5e9; color: #2e7d32; }
     .action-btns { display: flex; gap: 0.5rem; }
     .btn-sm {
       padding: 0.35rem 0.9rem;
@@ -1511,6 +1520,13 @@
       <div class="admin-nav-item" onclick="showAdminSection('projects')">🖼 Projects</div>
       <div class="admin-nav-item" onclick="showAdminSection('upload')">⬆️ Upload</div>
       <div class="admin-nav-item" onclick="showAdminSection('messages')">✉️ Messages</div>
+      <div class="admin-nav-divider"></div>
+      <div class="admin-nav-item" onclick="showAdminSection('services')">✨ Services</div>
+      <div class="admin-nav-item" onclick="showAdminSection('testimonials')">💬 Testimonials</div>
+      <div class="admin-nav-item" onclick="showAdminSection('faqs')">❓ FAQs</div>
+      <div class="admin-nav-item" onclick="showAdminSection('quotes')">📋 Quote Requests</div>
+      <div class="admin-nav-item" onclick="showAdminSection('team')">👥 Team</div>
+      <div class="admin-nav-item" onclick="showAdminSection('settings')">⚙️ Settings</div>
     </div>
     <div class="admin-content" id="admin-content-area">
       <!-- Injected dynamically -->
@@ -1548,7 +1564,13 @@ async function api(endpoint, options = {}) {
 let DB = {
   users: [],
   projects: [],
-  messages: []
+  messages: [],
+  services: [],
+  testimonials: [],
+  faqs: [],
+  quoteRequests: [],
+  teamMembers: [],
+  siteSettings: {}
 };
 
 // Session state
@@ -1576,6 +1598,26 @@ async function initAPI() {
     // Re-render if on portfolio/home
     if (document.getElementById('featured-grid')) renderFeatured();
     if (document.getElementById('portfolio-grid')) renderPortfolio();
+
+    // Fetch new collections
+    try {
+      const [servicesRes, testimonialsRes, faqsRes, quotesRes, teamRes, settingsRes] = await Promise.all([
+        api('/api/services'),
+        api('/api/testimonials'),
+        api('/api/faqs'),
+        api('/api/quotes'),
+        api('/api/team'),
+        api('/api/settings')
+      ]);
+      if (servicesRes.status === 'success') DB.services = servicesRes.data;
+      if (testimonialsRes.status === 'success') DB.testimonials = testimonialsRes.data;
+      if (faqsRes.status === 'success') DB.faqs = faqsRes.data;
+      if (quotesRes.status === 'success') DB.quoteRequests = quotesRes.data;
+      if (teamRes.status === 'success') DB.teamMembers = teamRes.data;
+      if (settingsRes.status === 'success') DB.siteSettings = settingsRes.data;
+    } catch (e) {
+      console.log('Some collections not available:', e.message);
+    }
   } catch (e) {
     console.error('Failed to load projects:', e.message);
   }
@@ -1584,13 +1626,16 @@ async function initAPI() {
 // Check existing session on load
 async function checkAuth() {
   try {
+    const token = localStorage.getItem('token');
+    if (!token) return;
     const res = await api('/api/auth/me');
     if (res.status === 'success') {
       currentUser = {
         id: res.data.user._id,
         email: res.data.user.email,
         name: res.data.user.firstName + ' ' + res.data.user.lastName,
-        role: res.data.user.role
+        role: res.data.user.role,
+        token: token
       };
       updateNavAuth();
     }
@@ -1887,11 +1932,13 @@ function handleLogin() {
   // API call to login
   api('/api/auth/login', { method: 'POST', body: { email, password: pass } })
     .then(res => {
+      localStorage.setItem('token', res.data.token);
       currentUser = {
         id: res.data.user._id,
         email: res.data.user.email,
         name: res.data.user.firstName + ' ' + res.data.user.lastName,
-        role: res.data.user.role
+        role: res.data.user.role,
+        token: res.data.token
       };
       closeAuthModalBtn();
       updateNavAuth();
@@ -1915,11 +1962,13 @@ function handleRegister() {
   // API call to register
   api('/api/auth/register', { method: 'POST', body: { firstName: fname, lastName: lname, email, password: pass } })
     .then(res => {
+      localStorage.setItem('token', res.data.token);
       currentUser = {
         id: res.data.user._id,
         email: res.data.user.email,
         name: res.data.user.firstName + ' ' + res.data.user.lastName,
-        role: res.data.user.role
+        role: res.data.user.role,
+        token: res.data.token
       };
       closeAuthModalBtn();
       updateNavAuth();
@@ -1929,6 +1978,7 @@ function handleRegister() {
 }
 
 function logout() {
+  localStorage.removeItem('token');
   api('/api/auth/logout', { method: 'POST' })
     .then(() => {
       currentUser = null;
@@ -2183,8 +2233,6 @@ function adminToggleFeatured(id) {
       if (currentAdminSection) renderAdminContent(currentAdminSection);
     })
     .catch(err => showToast(err.message));
-} }
-  renderAdminContent(currentAdminSection);
 }
 
 function adminEditProject(id) {

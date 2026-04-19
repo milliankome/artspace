@@ -858,6 +858,11 @@
       color: var(--cream);
       border-left-color: var(--gold);
     }
+    .admin-nav-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.1);
+      margin: 1rem 0;
+    }
     .admin-content { padding: 3rem; }
     .admin-header { margin-bottom: 2.5rem; }
     .admin-header h1 { font-family: var(--serif); font-size: 2rem; color: var(--brown-deep); font-weight: 300; }
@@ -876,6 +881,7 @@
     .admin-card-num { font-family: var(--serif); font-size: 2.5rem; color: var(--brown-deep); font-weight: 300; line-height: 1; }
     .admin-card-label { font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-light); margin-top: 0.5rem; }
     .admin-card-icon { font-size: 1.5rem; margin-bottom: 1rem; }
+    .admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
     .admin-section { background: var(--white); padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-card); }
     .admin-section h2 { font-family: var(--serif); font-size: 1.3rem; color: var(--brown-deep); font-weight: 400; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--beige); }
     .upload-zone {
@@ -934,6 +940,9 @@
     .badge-bedroom { background: #f3e5f5; color: #7b1fa2; }
     .badge-office { background: #e3f2fd; color: #1565c0; }
     .badge-outdoor { background: #e8f5e9; color: #2e7d32; }
+    .badge-new { background: #e3f2fd; color: #1565c0; }
+    .badge-progress { background: #fff3e0; color: #e65100; }
+    .badge-closed { background: #e8f5e9; color: #2e7d32; }
     .action-btns { display: flex; gap: 0.5rem; }
     .btn-sm {
       padding: 0.35rem 0.9rem;
@@ -1511,6 +1520,13 @@
       <div class="admin-nav-item" onclick="showAdminSection('projects')">🖼 Projects</div>
       <div class="admin-nav-item" onclick="showAdminSection('upload')">⬆️ Upload</div>
       <div class="admin-nav-item" onclick="showAdminSection('messages')">✉️ Messages</div>
+      <div class="admin-nav-divider"></div>
+      <div class="admin-nav-item" onclick="showAdminSection('services')">✨ Services</div>
+      <div class="admin-nav-item" onclick="showAdminSection('testimonials')">💬 Testimonials</div>
+      <div class="admin-nav-item" onclick="showAdminSection('faqs')">❓ FAQs</div>
+      <div class="admin-nav-item" onclick="showAdminSection('quotes')">📋 Quote Requests</div>
+      <div class="admin-nav-item" onclick="showAdminSection('team')">👥 Team</div>
+      <div class="admin-nav-item" onclick="showAdminSection('settings')">⚙️ Settings</div>
     </div>
     <div class="admin-content" id="admin-content-area">
       <!-- Injected dynamically -->
@@ -1548,7 +1564,13 @@ async function api(endpoint, options = {}) {
 let DB = {
   users: [],
   projects: [],
-  messages: []
+  messages: [],
+  services: [],
+  testimonials: [],
+  faqs: [],
+  quoteRequests: [],
+  teamMembers: [],
+  siteSettings: {}
 };
 
 // Session state
@@ -1585,18 +1607,41 @@ async function initAPI() {
   // Re-render if on portfolio/home
   if (document.getElementById('featured-grid')) renderFeatured();
   if (document.getElementById('portfolio-grid')) renderPortfolio();
+
+  // Fetch new collections
+  try {
+    const [servicesRes, testimonialsRes, faqsRes, quotesRes, teamRes, settingsRes] = await Promise.all([
+      api('/api/services'),
+      api('/api/testimonials'),
+      api('/api/faqs'),
+      api('/api/quotes'),
+      api('/api/team'),
+      api('/api/settings')
+    ]);
+    if (servicesRes.status === 'success') DB.services = servicesRes.data;
+    if (testimonialsRes.status === 'success') DB.testimonials = testimonialsRes.data;
+    if (faqsRes.status === 'success') DB.faqs = faqsRes.data;
+    if (quotesRes.status === 'success') DB.quoteRequests = quotesRes.data;
+    if (teamRes.status === 'success') DB.teamMembers = teamRes.data;
+    if (settingsRes.status === 'success') DB.siteSettings = settingsRes.data;
+  } catch (e) {
+    console.log('Some collections not available:', e.message);
+  }
 }
 
 // Check existing session on load
 async function checkAuth() {
   try {
+    const token = localStorage.getItem('token');
+    if (!token) return;
     const res = await api('/api/auth/me');
     if (res.status === 'success') {
       currentUser = {
         id: res.data.user._id,
         email: res.data.user.email,
         name: res.data.user.firstName + ' ' + res.data.user.lastName,
-        role: res.data.user.role
+        role: res.data.user.role,
+        token: token
       };
       updateNavAuth();
     }
@@ -1893,11 +1938,13 @@ function handleLogin() {
   // API call to login
   api('/api/auth/login', { method: 'POST', body: { email, password: pass } })
     .then(res => {
+      localStorage.setItem('token', res.data.token);
       currentUser = {
         id: res.data.user._id,
         email: res.data.user.email,
         name: res.data.user.firstName + ' ' + res.data.user.lastName,
-        role: res.data.user.role
+        role: res.data.user.role,
+        token: res.data.token
       };
       closeAuthModalBtn();
       updateNavAuth();
@@ -1921,11 +1968,13 @@ function handleRegister() {
   // API call to register
   api('/api/auth/register', { method: 'POST', body: { firstName: fname, lastName: lname, email, password: pass } })
     .then(res => {
+      localStorage.setItem('token', res.data.token);
       currentUser = {
         id: res.data.user._id,
         email: res.data.user.email,
         name: res.data.user.firstName + ' ' + res.data.user.lastName,
-        role: res.data.user.role
+        role: res.data.user.role,
+        token: res.data.token
       };
       closeAuthModalBtn();
       updateNavAuth();
@@ -1935,6 +1984,7 @@ function handleRegister() {
 }
 
 function logout() {
+  localStorage.removeItem('token');
   api('/api/auth/logout', { method: 'POST' })
     .then(() => {
       currentUser = null;
@@ -2073,6 +2123,173 @@ function renderAdminContent(section) {
         </table>
       </div>
     `;
+  } else if (section === 'services') {
+    el.innerHTML = `
+      <div class="admin-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+        <div><h1>Services</h1><p>Manage your service offerings.</p></div>
+        <button class="btn-dark" onclick="showServiceForm()">+ Add New Service</button>
+      </div>
+      <div class="admin-section">
+        <h2>All Services</h2>
+        <div id="services-list" class="admin-grid">${renderServices(DB.services || [])}</div>
+      </div>
+      <div id="service-form-container" style="display:none">
+        <div class="admin-section">
+          <h2 id="service-form-title">Add Service</h2>
+          <div class="form-row">
+            <div class="form-group"><label>Service Title</label><input type="text" id="s-title" placeholder="Interior Design Consultation"/></div>
+            <div class="form-group"><label>Category</label>
+              <select id="s-category"><option value="residential">Residential</option><option value="commercial">Commercial</option><option value="staging">Staging</option></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Icon (emoji)</label><input type="text" id="s-icon" placeholder="✨" style="width:60px"/></div>
+            <div class="form-group"><label>Pricing Model</label><input type="text" id="s-pricing" placeholder="From KES 50,000"/></div>
+          </div>
+          <div class="form-group"><label>Service Area</label><input type="text" id="s-area" placeholder="Nairobi & Surrounding"/></div>
+          <div class="form-group"><label>Description</label><textarea id="s-desc" placeholder="Describe this service..."></textarea></div>
+          <div style="display:flex;gap:1rem;margin-top:1rem">
+            <button class="btn-dark" onclick="saveService()">Save Service</button>
+            <button class="btn-sm" onclick="showAdminSection('services')">Cancel</button>
+          </div>
+        </div>
+      </div>
+    `;
+  } else if (section === 'testimonials') {
+    el.innerHTML = `
+      <div class="admin-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+        <div><h1>Testimonials</h1><p>Manage client testimonials.</p></div>
+        <button class="btn-dark" onclick="showTestimonialForm()">+ Add New Testimonial</button>
+      </div>
+      <div class="admin-section">
+        <h2>All Testimonials</h2>
+        <div id="testimonials-list" class="admin-grid">${renderTestimonials(DB.testimonials || [])}</div>
+      </div>
+      <div id="testimonial-form-container" style="display:none">
+        <div class="admin-section">
+          <h2 id="testimonial-form-title">Add Testimonial</h2>
+          <div class="form-row">
+            <div class="form-group"><label>Client Name</label><input type="text" id="t-name" placeholder="Jane Doe"/></div>
+            <div class="form-group"><label>Client Title</label><input type="text" id="t-title" placeholder="Homeowner"/></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Rating</label>
+              <select id="t-rating"><option value="5">5 Stars</option><option value="4">4 Stars</option><option value="3">3 Stars</option></select>
+            </div>
+            <div class="form-group"><label>Project Link</label><input type="text" id="t-link" placeholder="https://..."/></div>
+          </div>
+          <div class="form-group"><label>Testimonial Content</label><textarea id="t-content" placeholder="What did the client say?"></textarea></div>
+          <div style="display:flex;gap:1rem;margin-top:1rem">
+            <button class="btn-dark" onclick="saveTestimonial()">Save Testimonial</button>
+            <button class="btn-sm" onclick="showAdminSection('testimonials')">Cancel</button>
+          </div>
+        </div>
+      </div>
+    `;
+  } else if (section === 'faqs') {
+    el.innerHTML = `
+      <div class="admin-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+        <div><h1>FAQs</h1><p>Manage frequently asked questions.</p></div>
+        <button class="btn-dark" onclick="showFaqForm()">+ Add New FAQ</button>
+      </div>
+      <div class="admin-section">
+        <h2>All FAQs</h2>
+        <div id="faqs-list">${renderFaqs(DB.faqs || [])}</div>
+      </div>
+      <div id="faq-form-container" style="display:none">
+        <div class="admin-section">
+          <h2 id="faq-form-title">Add FAQ</h2>
+          <div class="form-row">
+            <div class="form-group"><label>Question</label><input type="text" id="f-question" placeholder="How long does a project take?"/></div>
+            <div class="form-group"><label>Category</label>
+              <select id="f-category"><option value="general">General</option><option value="process">Process</option><option value="pricing">Pricing</option><option value="timeline">Timeline</option></select>
+            </div>
+          </div>
+          <div class="form-group"><label>Answer</label><textarea id="f-answer" placeholder="Answer the question..."></textarea></div>
+          <div style="display:flex;gap:1rem;margin-top:1rem">
+            <button class="btn-dark" onclick="saveFaq()">Save FAQ</button>
+            <button class="btn-sm" onclick="showAdminSection('faqs')">Cancel</button>
+          </div>
+        </div>
+      </div>
+    `;
+  } else if (section === 'quotes') {
+    el.innerHTML = `
+      <div class="admin-header"><h1>Quote Requests</h1><p>Manage client quote requests.</p></div>
+      <div class="admin-section">
+        <h2>All Requests</h2>
+        <table class="admin-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Project Type</th><th>Budget</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody>${(DB.quoteRequests || []).map(q=>`
+            <tr>
+              <td>${sanitize(q.name)}</td>
+              <td>${sanitize(q.email)}</td>
+              <td>${sanitize(q.projectType || '—')}</td>
+              <td>${sanitize(q.budget || '—')}</td>
+              <td><span class="badge ${q.status === 'new' ? 'badge-new' : q.status === 'in-progress' ? 'badge-progress' : 'badge-closed'}">${sanitize(q.status)}</span></td>
+              <td>${new Date(q.createdAt).toLocaleDateString()}</td>
+              <td><button class="btn-sm" onclick="viewQuote('${q._id}')">View</button></td>
+            </tr>
+          `).join('')}</tbody>
+        </table>
+      </div>
+    `;
+  } else if (section === 'team') {
+    el.innerHTML = `
+      <div class="admin-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+        <div><h1>Team</h1><p>Manage team members.</p></div>
+        <button class="btn-dark" onclick="showTeamForm()">+ Add Team Member</button>
+      </div>
+      <div class="admin-section">
+        <h2>All Team Members</h2>
+        <div id="team-list" class="admin-grid">${renderTeam(DB.teamMembers || [])}</div>
+      </div>
+      <div id="team-form-container" style="display:none">
+        <div class="admin-section">
+          <h2 id="team-form-title">Add Team Member</h2>
+          <div class="form-row">
+            <div class="form-group"><label>Name</label><input type="text" id="tm-name" placeholder="John Smith"/></div>
+            <div class="form-group"><label>Role</label><input type="text" id="tm-role" placeholder="Senior Designer"/></div>
+          </div>
+          <div class="form-group"><label>Bio</label><textarea id="tm-bio" placeholder="Short bio..."></textarea></div>
+          <div class="form-row">
+            <div class="form-group"><label>LinkedIn</label><input type="text" id="tm-linkedin" placeholder="https://linkedin.com/..."/></div>
+            <div class="form-group"><label>Instagram</label><input type="text" id="tm-instagram" placeholder="https://instagram.com/..."/></div>
+          </div>
+          <div style="display:flex;gap:1rem;margin-top:1rem">
+            <button class="btn-dark" onclick="saveTeamMember()">Save</button>
+            <button class="btn-sm" onclick="showAdminSection('team')">Cancel</button>
+          </div>
+        </div>
+      </div>
+    `;
+  } else if (section === 'settings') {
+    el.innerHTML = `
+      <div class="admin-header"><h1>Settings</h1><p>Configure site settings.</p></div>
+      <div class="admin-section">
+        <h2>General Settings</h2>
+        <div class="form-row">
+          <div class="form-group"><label>Site Name</label><input type="text" id="set-siteName" value="${sanitize(DB.siteSettings?.siteName || 'ArtSpace Interiors')}"/></div>
+          <div class="form-group"><label>Tagline</label><input type="text" id="set-tagline" value="${sanitize(DB.siteSettings?.tagline || 'Elegant Interior Design')}"/></div>
+        </div>
+        <div class="form-group"><label>Contact Email</label><input type="email" id="set-email" value="${sanitize(DB.siteSettings?.contactEmail || '')}"/></div>
+        <div class="form-group"><label>Phone</label><input type="text" id="set-phone" value="${sanitize(DB.siteSettings?.phone || '')}"/></div>
+        <div class="form-group"><label>Address</label><textarea id="set-address">${sanitize(DB.siteSettings?.address || '')}</textarea></div>
+        <button class="btn-dark" onclick="saveSettings()" style="margin-top:1rem">Save Settings</button>
+      </div>
+      <div class="admin-section">
+        <h2>Social Links</h2>
+        <div class="form-row">
+          <div class="form-group"><label>Instagram</label><input type="text" id="set-instagram" value="${sanitize(DB.siteSettings?.social?.instagram || '')}"/></div>
+          <div class="form-group"><label>Facebook</label><input type="text" id="set-facebook" value="${sanitize(DB.siteSettings?.social?.facebook || '')}"/></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Pinterest</label><input type="text" id="set-pinterest" value="${sanitize(DB.siteSettings?.social?.pinterest || '')}"/></div>
+          <div class="form-group"><label>LinkedIn</label><input type="text" id="set-linkedin" value="${sanitize(DB.siteSettings?.social?.linkedin || '')}"/></div>
+        </div>
+        <button class="btn-dark" onclick="saveSettings()" style="margin-top:1rem">Save Social Links</button>
+      </div>
+    `;
   }
 }
 
@@ -2094,6 +2311,318 @@ function renderProjectsTable(projects) {
       `).join('')}</tbody>
     </table>
   `;
+}
+
+// Render helpers for new admin sections
+function renderServices(services) {
+  if (!services.length) return '<p style="color:var(--text-light)">No services yet. Click "Add New Service" to create one.</p>';
+  return services.map(s => `
+    <div class="admin-card" style="text-align:left">
+      <div style="font-size:2rem">${sanitize(s.icon || '✨')}</div>
+      <h3 style="margin:0.5rem 0;font-size:1rem">${sanitize(s.title)}</h3>
+      <p style="font-size:0.8rem;color:var(--text-light)">${sanitize(s.category)}</p>
+      <p style="font-size:0.85rem">${sanitize(s.description?.substring(0,80))}...</p>
+      <div class="action-btns" style="margin-top:0.5rem">
+        <button class="btn-sm" onclick="editService('${s._id}')">Edit</button>
+        <button class="btn-sm danger" onclick="deleteService('${s._id}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderTestimonials(testimonials) {
+  if (!testimonials.length) return '<p style="color:var(--text-light)">No testimonials yet.</p>';
+  return testimonials.map(t => `
+    <div class="admin-card" style="text-align:left">
+      <div style="color:var(--gold)">${'⭐'.repeat(t.rating || 5)}</div>
+      <p style="font-style:italic;margin:0.5rem 0">"${sanitize(t.content?.substring(0,100))}..."</p>
+      <p style="font-weight:500;margin:0">${sanitize(t.clientName)}</p>
+      <p style="font-size:0.8rem;color:var(--text-light)">${sanitize(t.clientTitle || '')}</p>
+      <div class="action-btns" style="margin-top:0.5rem">
+        <button class="btn-sm" onclick="editTestimonial('${t._id}')">Edit</button>
+        <button class="btn-sm danger" onclick="deleteTestimonial('${t._id}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderFaqs(faqs) {
+  if (!faqs.length) return '<p style="color:var(--text-light)">No FAQs yet.</p>';
+  return faqs.map(f => `
+    <div style="padding:1rem;border-bottom:1px solid var(--beige)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><strong>${sanitize(f.question)}</strong><span class="badge" style="margin-left:0.5rem">${sanitize(f.category)}</span></div>
+        <div class="action-btns">
+          <button class="btn-sm" onclick="editFaq('${f._id}')">Edit</button>
+          <button class="btn-sm danger" onclick="deleteFaq('${f._id}')">Delete</button>
+        </div>
+      </div>
+      <p style="color:var(--text-light);margin:0.5rem 0 0">${sanitize(f.answer?.substring(0,100))}...</p>
+    </div>
+  `).join('');
+}
+
+function renderTeam(members) {
+  if (!members.length) return '<p style="color:var(--text-light)">No team members yet.</p>';
+  return members.map(m => `
+    <div class="admin-card" style="text-align:left">
+      <div style="width:60px;height:60px;border-radius:50%;background:var(--beige);display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:0.5rem">
+        ${m.photo ? `<img src="${sanitize(m.photo)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover"/>` : '👤'}
+      </div>
+      <h3 style="margin:0.5rem 0;font-size:1rem">${sanitize(m.name)}</h3>
+      <p style="font-size:0.8rem;color:var(--text-light)">${sanitize(m.role || '')}</p>
+      <div class="action-btns" style="margin-top:0.5rem">
+        <button class="btn-sm" onclick="editTeamMember('${m._id}')">Edit</button>
+        <button class="btn-sm danger" onclick="deleteTeamMember('${m._id}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Form display functions
+function showServiceForm() {
+  document.getElementById('service-form-container').style.display = 'block';
+  document.getElementById('services-list').style.display = 'none';
+  document.getElementById('service-form-title').textContent = 'Add Service';
+  document.getElementById('s-title').value = '';
+  document.getElementById('s-icon').value = '✨';
+  document.getElementById('s-pricing').value = '';
+  document.getElementById('s-area').value = '';
+  document.getElementById('s-desc').value = '';
+}
+
+function showTestimonialForm() {
+  document.getElementById('testimonial-form-container').style.display = 'block';
+  document.getElementById('testimonials-list').style.display = 'none';
+  document.getElementById('testimonial-form-title').textContent = 'Add Testimonial';
+  document.getElementById('t-name').value = '';
+  document.getElementById('t-title').value = '';
+  document.getElementById('t-content').value = '';
+  document.getElementById('t-rating').value = '5';
+}
+
+function showFaqForm() {
+  document.getElementById('faq-form-container').style.display = 'block';
+  document.getElementById('faqs-list').style.display = 'none';
+  document.getElementById('faq-form-title').textContent = 'Add FAQ';
+  document.getElementById('f-question').value = '';
+  document.getElementById('f-answer').value = '';
+}
+
+function showTeamForm() {
+  document.getElementById('team-form-container').style.display = 'block';
+  document.getElementById('team-list').style.display = 'none';
+  document.getElementById('team-form-title').textContent = 'Add Team Member';
+  document.getElementById('tm-name').value = '';
+  document.getElementById('tm-role').value = '';
+  document.getElementById('tm-bio').value = '';
+}
+
+// API functions for new features
+async function saveService() {
+  const data = {
+    title: document.getElementById('s-title').value.trim(),
+    icon: document.getElementById('s-icon').value.trim(),
+    category: document.getElementById('s-category').value,
+    pricingModel: document.getElementById('s-pricing').value.trim(),
+    serviceArea: document.getElementById('s-area').value.trim(),
+    description: document.getElementById('s-desc').value.trim()
+  };
+  if (!data.title) return showToast('Title is required');
+  try {
+    const res = await fetch('/api/services', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + currentUser.token },
+      body: JSON.stringify(data)
+    });
+    const json = await res.json();
+    if (json.status === 'success') {
+      DB.services = [...(DB.services || []), json.data];
+      showToast('Service saved!');
+      showAdminSection('services');
+    } else {
+      showToast(json.error || 'Failed to save');
+    }
+  } catch (e) { showToast('Error: ' + e.message); }
+}
+
+async function deleteService(id) {
+  if (!confirm('Delete this service?')) return;
+  try {
+    const res = await fetch('/api/services/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + currentUser.token } });
+    if (res.ok) {
+      DB.services = DB.services.filter(s => s._id !== id);
+      showAdminSection('services');
+      showToast('Service deleted');
+    } else {
+      showToast('Failed to delete');
+    }
+  } catch (e) { showToast('Error: ' + e.message); }
+}
+
+async function saveTestimonial() {
+  const data = {
+    clientName: document.getElementById('t-name').value.trim(),
+    clientTitle: document.getElementById('t-title').value.trim(),
+    content: document.getElementById('t-content').value.trim(),
+    rating: parseInt(document.getElementById('t-rating').value),
+    projectLink: document.getElementById('t-link').value.trim()
+  };
+  if (!data.clientName || !data.content) return showToast('Name and content required');
+  try {
+    const res = await fetch('/api/testimonials', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + currentUser.token },
+      body: JSON.stringify(data)
+    });
+    const json = await res.json();
+    if (json.status === 'success') {
+      DB.testimonials = [...(DB.testimonials || []), json.data];
+      showToast('Testimonial saved!');
+      showAdminSection('testimonials');
+    } else {
+      showToast(json.error || 'Failed to save');
+    }
+  } catch (e) { showToast('Error: ' + e.message); }
+}
+
+async function deleteTestimonial(id) {
+  if (!confirm('Delete this testimonial?')) return;
+  try {
+    const res = await fetch('/api/testimonials/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + currentUser.token } });
+    if (res.ok) {
+      DB.testimonials = DB.testimonials.filter(t => t._id !== id);
+      showAdminSection('testimonials');
+      showToast('Testimonial deleted');
+    } else {
+      showToast('Failed to delete');
+    }
+  } catch (e) { showToast('Error: ' + e.message); }
+}
+
+async function saveFaq() {
+  const data = {
+    question: document.getElementById('f-question').value.trim(),
+    answer: document.getElementById('f-answer').value.trim(),
+    category: document.getElementById('f-category').value
+  };
+  if (!data.question || !data.answer) return showToast('Question and answer required');
+  try {
+    const res = await fetch('/api/faqs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + currentUser.token },
+      body: JSON.stringify(data)
+    });
+    const json = await res.json();
+    if (json.status === 'success') {
+      DB.faqs = [...(DB.faqs || []), json.data];
+      showToast('FAQ saved!');
+      showAdminSection('faqs');
+    } else {
+      showToast(json.error || 'Failed to save');
+    }
+  } catch (e) { showToast('Error: ' + e.message); }
+}
+
+async function deleteFaq(id) {
+  if (!confirm('Delete this FAQ?')) return;
+  try {
+    const res = await fetch('/api/faqs/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + currentUser.token } });
+    if (res.ok) {
+      DB.faqs = DB.faqs.filter(f => f._id !== id);
+      showAdminSection('faqs');
+      showToast('FAQ deleted');
+    } else {
+      showToast('Failed to delete');
+    }
+  } catch (e) { showToast('Error: ' + e.message); }
+}
+
+async function saveTeamMember() {
+  const data = {
+    name: document.getElementById('tm-name').value.trim(),
+    role: document.getElementById('tm-role').value.trim(),
+    bio: document.getElementById('tm-bio').value.trim(),
+    socialLinks: {
+      linkedin: document.getElementById('tm-linkedin')?.value.trim() || '',
+      instagram: document.getElementById('tm-instagram')?.value.trim() || ''
+    }
+  };
+  if (!data.name) return showToast('Name is required');
+  try {
+    const res = await fetch('/api/team', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + currentUser.token },
+      body: JSON.stringify(data)
+    });
+    const json = await res.json();
+    if (json.status === 'success') {
+      DB.teamMembers = [...(DB.teamMembers || []), json.data];
+      showToast('Team member saved!');
+      showAdminSection('team');
+    } else {
+      showToast(json.error || 'Failed to save');
+    }
+  } catch (e) { showToast('Error: ' + e.message); }
+}
+
+async function deleteTeamMember(id) {
+  if (!confirm('Delete this team member?')) return;
+  try {
+    const res = await fetch('/api/team/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + currentUser.token } });
+    if (res.ok) {
+      DB.teamMembers = DB.teamMembers.filter(m => m._id !== id);
+      showAdminSection('team');
+      showToast('Team member deleted');
+    } else {
+      showToast('Failed to delete');
+    }
+  } catch (e) { showToast('Error: ' + e.message); }
+}
+
+async function saveSettings() {
+  const data = {
+    siteName: document.getElementById('set-siteName').value.trim(),
+    tagline: document.getElementById('set-tagline').value.trim(),
+    contactEmail: document.getElementById('set-email').value.trim(),
+    phone: document.getElementById('set-phone').value.trim(),
+    address: document.getElementById('set-address').value.trim(),
+    social: {
+      instagram: document.getElementById('set-instagram').value.trim(),
+      facebook: document.getElementById('set-facebook').value.trim(),
+      pinterest: document.getElementById('set-pinterest').value.trim(),
+      linkedin: document.getElementById('set-linkedin').value.trim()
+    }
+  };
+  try {
+    const res = await fetch('/api/settings/site', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + currentUser.token },
+      body: JSON.stringify({ data })
+    });
+    if (res.ok) {
+      DB.siteSettings = { ...DB.siteSettings, ...data };
+      showToast('Settings saved!');
+    } else {
+      showToast('Failed to save settings');
+    }
+  } catch (e) { showToast('Error: ' + e.message); }
+}
+
+function viewQuote(id) {
+  const quote = DB.quoteRequests?.find(q => q._id === id);
+  if (!quote) return;
+  const notes = prompt('Notes for this quote request:', quote.notes || '');
+  if (notes !== null) {
+    fetch('/api/quotes/' + id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + currentUser.token },
+      body: JSON.stringify({ notes, status: quote.status === 'new' ? 'in-progress' : quote.status })
+    }).then(() => {
+      quote.notes = notes;
+      showToast('Quote updated');
+    });
+  }
 }
 
 function initUploadZone() {
@@ -2189,8 +2718,6 @@ function adminToggleFeatured(id) {
       if (currentAdminSection) renderAdminContent(currentAdminSection);
     })
     .catch(err => showToast(err.message));
-} }
-  renderAdminContent(currentAdminSection);
 }
 
 function adminEditProject(id) {

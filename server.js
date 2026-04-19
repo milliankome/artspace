@@ -38,7 +38,8 @@ app.use(helmet({
       styleSrc:       ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc:        ["'self'", "https://fonts.gstatic.com"],
       imgSrc:         ["'self'", "data:", "https://images.unsplash.com", "https://res.cloudinary.com"],
-      scriptSrc:      ["'self'", "'unsafe-inline'"],
+      scriptSrc:      ["'self'", "'unsafe-inline'", "'unsafe-hashes'"],
+      scriptSrcAttr:  ["'self'", "'unsafe-inline'", "'unsafe-hashes'"],
       connectSrc:     connectOrigins,
       frameSrc:       ["'none'"],
     },
@@ -46,13 +47,9 @@ app.use(helmet({
   hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
 }));
 
-// 2. CORS — whitelist allowed origins
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(',');
+// 2. CORS — allow all origins in development
 app.use(cors({
-  origin: (origin, cb) => {
-    if (!origin || allowedOrigins.includes(origin)) cb(null, true);
-    else cb(new Error('Not allowed by CORS'));
-  },
+  origin: true,
   credentials: true,
 }));
 
@@ -127,6 +124,7 @@ userSchema.methods.comparePassword = async function(candidate) {
 };
 
 const User = mongoose.model('User', userSchema);
+app.set('User', User);
 
 // Project Schema
 const projectSchema = new mongoose.Schema({
@@ -516,6 +514,13 @@ messagesRouter.patch('/:id/read', protect, restrictTo('admin'), async (req, res)
 });
 
 app.use('/api/messages', messagesRouter);
+
+/* ══════════════════════════════════════════════
+   EXTENDED ROUTES — New Admin Features
+══════════════════════════════════════════════ */
+const extendedRoutes = require('./routes/extended');
+const { protect, restrictTo } = require('./routes/helpers');
+app.use('/api', extendedRoutes);
 
 /* ══════════════════════════════════════════════
    STATIC FILES — Serve frontend
