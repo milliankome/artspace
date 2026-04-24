@@ -379,21 +379,44 @@
     }
     .process-step p { font-size: 0.88rem; color: var(--text-light); line-height: 1.8; }
 
-    /* ─── TESTIMONIAL ───────────────────────────────────── */
+    /* ─── TESTIMONIALS ──────────────────────────────────── */
     .testimonial-section {
       background: var(--cream);
       padding: 7rem 0;
+    }
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .testimonial-card {
+      background: var(--white);
+      padding: 2rem;
+      border-radius: 4px;
+      box-shadow: var(--shadow-card);
       text-align: center;
+      position: relative;
     }
     .testimonial-quote {
       font-family: var(--serif);
-      font-size: clamp(1.4rem, 3vw, 2.2rem);
+      font-size: 1.2rem;
       font-style: italic;
       color: var(--brown-deep);
       font-weight: 300;
-      max-width: 760px;
-      margin: 0 auto 2rem;
-      line-height: 1.5;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+    .testimonial-quote::before {
+      content: '"';
+      font-size: 3rem;
+      color: var(--gold);
+      position: absolute;
+      top: -10px;
+      left: -20px;
+      line-height: 1;
     }
     .testimonial-author {
       font-size: 0.78rem;
@@ -401,6 +424,102 @@
       text-transform: uppercase;
       color: var(--gold);
       font-weight: 500;
+    }
+    .testimonial-rating {
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+
+    /* ─── FAQ ───────────────────────────────────────────── */
+    .faq-grid {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .faq-item {
+      background: var(--white);
+      border: 1px solid var(--beige);
+      border-radius: 4px;
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+    .faq-question {
+      padding: 1.5rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 500;
+      color: var(--brown-deep);
+      transition: background var(--transition);
+    }
+    .faq-question:hover {
+      background: var(--cream);
+    }
+    .faq-toggle {
+      font-size: 1.2rem;
+      color: var(--gold);
+      transition: transform var(--transition);
+    }
+    .faq-item.active .faq-toggle {
+      transform: rotate(45deg);
+    }
+    .faq-answer {
+      padding: 0 1.5rem 1.5rem;
+      color: var(--text-light);
+      line-height: 1.7;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+    }
+    .faq-item.active .faq-answer {
+      max-height: 500px;
+      padding: 0 1.5rem 1.5rem;
+    }
+
+    /* ─── AWARDS ────────────────────────────────────────── */
+    .awards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .award-card {
+      background: var(--white);
+      padding: 2rem;
+      border-radius: 4px;
+      box-shadow: var(--shadow-card);
+      text-align: center;
+      position: relative;
+    }
+    .award-year {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: var(--gold);
+      color: var(--white);
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    .award-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    .award-title {
+      font-family: var(--serif);
+      font-size: 1.2rem;
+      color: var(--brown-deep);
+      font-weight: 400;
+      margin-bottom: 0.5rem;
+    }
+    .award-publication {
+      font-size: 0.85rem;
+      color: var(--gold);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
     }
 
     /* ─── CTA BANNER ────────────────────────────────────── */
@@ -1251,13 +1370,30 @@
     </div>
   </section>
 
-  <!-- Testimonial -->
+  <!-- Awards -->
+  <section class="section" style="background:var(--linen)">
+    <div class="container">
+      <div class="section-header fade-in">
+        <p class="section-eyebrow">Recognition</p>
+        <h2 class="section-title serif">Awards & Press</h2>
+        <div class="section-line"></div>
+      </div>
+      <div class="awards-grid fade-in" id="awards-grid">
+        <!-- Awards loaded dynamically -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
   <div class="testimonial-section">
     <div class="container">
-      <div class="fade-in">
-        <p style="font-size:3rem;color:var(--gold);font-family:var(--serif);margin-bottom:1rem;line-height:1">"</p>
-        <p class="testimonial-quote">ArtSpace transformed our penthouse into something beyond imagination. Every detail speaks to a profound understanding of beauty and how we actually live.</p>
-        <p class="testimonial-author">— Amara Osei, Westlands, Nairobi</p>
+      <div class="section-header fade-in" style="margin-bottom:3rem">
+        <p class="section-eyebrow">Client Love</p>
+        <h2 class="section-title serif">What Our Clients Say</h2>
+        <div class="section-line"></div>
+      </div>
+      <div class="testimonials-grid fade-in" id="testimonials-grid">
+        <!-- Testimonials loaded dynamically -->
       </div>
     </div>
   </div>
@@ -1270,6 +1406,20 @@
       <button class="btn-dark" onclick="showPage('contact')">Begin Your Journey</button>
     </div>
   </div>
+
+  <!-- FAQ -->
+  <section class="section" style="background:var(--white)">
+    <div class="container">
+      <div class="section-header fade-in">
+        <p class="section-eyebrow">Frequently Asked</p>
+        <h2 class="section-title serif">Questions</h2>
+        <div class="section-line"></div>
+      </div>
+      <div class="faq-grid fade-in" id="faq-grid">
+        <!-- FAQ loaded dynamically -->
+      </div>
+    </div>
+  </section>
 
   <footer>
     <div class="container">
@@ -1307,7 +1457,7 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <p>© 2025 ArtSpace Interior Design. All rights reserved.</p>
+        <p>© 2026 ArtSpace Interior Design. All rights reserved.</p>
         <p>Privacy Policy · Terms of Service</p>
       </div>
     </div>
@@ -1334,7 +1484,7 @@
   <footer>
     <div class="container">
       <div class="footer-bottom">
-        <p>© 2025 ArtSpace Interior Design. All rights reserved.</p>
+        <p>© 2026 ArtSpace Interior Design. All rights reserved.</p>
       </div>
     </div>
   </footer>
@@ -1362,7 +1512,7 @@
   <footer>
     <div class="container">
       <div class="footer-bottom">
-        <p>© 2025 ArtSpace Interior Design. All rights reserved.</p>
+        <p>© 2026 ArtSpace Interior Design. All rights reserved.</p>
       </div>
     </div>
   </footer>
@@ -1422,7 +1572,7 @@
   <footer>
     <div class="container">
       <div class="footer-bottom">
-        <p>© 2025 ArtSpace Interior Design. All rights reserved.</p>
+        <p>© 2026 ArtSpace Interior Design. All rights reserved.</p>
       </div>
     </div>
   </footer>
@@ -1464,11 +1614,7 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.025.507 3.934 1.395 5.608L0 24l6.562-1.395C8.236 23.493 10.066 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.85 0-3.574-.487-5.062-1.338l-.362-.214-3.752.984.984-3.655-.234-.375C2.487 15.59 2 13.85 2 12 2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
         Chat on WhatsApp
       </button>
-      <script>
-function openWhatsApp() {
-   window.open("https://wa.me/254716201058", "_blank");
-}
-</script>
+      
     </div>
     <div class="contact-form-wrap">
       <h3 class="serif">Send Us a Message</h3>
@@ -1636,20 +1782,33 @@ async function initAPI() {
 
   // Fetch new collections
   try {
-    const [servicesRes, testimonialsRes, faqsRes, quotesRes, teamRes, settingsRes] = await Promise.all([
-      api('/api/services'),
+    // Fetch services (public)
+    const servicesRes = await api('/api/services');
+    if (servicesRes.status === 'success') {
+      DB.services = servicesRes.data;
+      // Re-render services if on services page
+      if (document.getElementById('page-services')?.classList.contains('active')) {
+        renderServices();
+      }
+    }
+  } catch (e) {
+    console.log('Services not available:', e.message);
+  }
+
+  // Fetch other collections (may require auth)
+  try {
+    const [testimonialsRes, faqsRes, quotesRes, teamRes, settingsRes] = await Promise.allSettled([
       api('/api/testimonials'),
       api('/api/faqs'),
       api('/api/quotes'),
       api('/api/team'),
       api('/api/settings')
     ]);
-    if (servicesRes.status === 'success') DB.services = servicesRes.data;
-    if (testimonialsRes.status === 'success') DB.testimonials = testimonialsRes.data;
-    if (faqsRes.status === 'success') DB.faqs = faqsRes.data;
-    if (quotesRes.status === 'success') DB.quoteRequests = quotesRes.data;
-    if (teamRes.status === 'success') DB.teamMembers = teamRes.data;
-    if (settingsRes.status === 'success') DB.siteSettings = settingsRes.data;
+    if (testimonialsRes.status === 'fulfilled' && testimonialsRes.value.status === 'success') DB.testimonials = testimonialsRes.value.data;
+    if (faqsRes.status === 'fulfilled' && faqsRes.value.status === 'success') DB.faqs = faqsRes.value.data;
+    if (quotesRes.status === 'fulfilled' && quotesRes.value.status === 'success') DB.quoteRequests = quotesRes.value.data;
+    if (teamRes.status === 'fulfilled' && teamRes.value.status === 'success') DB.teamMembers = teamRes.value.data;
+    if (settingsRes.status === 'fulfilled' && settingsRes.value.status === 'success') DB.siteSettings = settingsRes.value.data;
   } catch (e) {
     console.log('Some collections not available:', e.message);
   }
@@ -1777,6 +1936,15 @@ function renderFeatured() {
       </div>
     </div>
   `).join('');
+
+  // Load testimonials
+  renderHomeTestimonials();
+
+  // Load FAQ
+  renderHomeFAQ();
+
+  // Load awards
+  renderHomeAwards();
 }
 
 function renderPortfolio(filter = 'All') {
@@ -1823,10 +1991,20 @@ const catBadge = c => {
 
 function renderServices() {
   const grid = document.getElementById('services-grid');
-  if (!grid || grid.children.length > 0) return;
-  grid.innerHTML = SERVICES_DATA.map(s => `
-    <div class="service-card fade-in">
-      <div class="service-icon">${s.icon}</div>
+  if (!grid) return;
+
+  // Use DB.services if available, otherwise fall back to hardcoded data
+  const servicesData = DB.services && DB.services.length > 0 ? DB.services.map(s => ({
+    icon: s.icon || '✨',
+    title: s.title || 'Service',
+    price: s.pricingModel || 'Contact for pricing',
+    desc: s.description || '',
+    features: s.serviceArea ? [s.serviceArea] : []
+  })) : SERVICES_DATA;
+
+  grid.innerHTML = servicesData.map(s => `
+    <div class="service-card fade-in visible">
+      <div class="service-icon">${sanitize(s.icon)}</div>
       <h3>${sanitize(s.title)}</h3>
       <p>${sanitize(s.desc)}</p>
       <ul class="service-features">
@@ -1836,6 +2014,94 @@ function renderServices() {
     </div>
   `).join('');
   observeFadeIns();
+}
+
+function renderHomeTestimonials() {
+  const grid = document.getElementById('testimonials-grid');
+  if (!grid) return;
+
+  // Load testimonials from DB
+  api('/api/extended/testimonials')
+    .then(res => {
+      const testimonials = res.data.filter(t => t.approved);
+      if (testimonials.length === 0) {
+        grid.innerHTML = '<p style="text-align:center;color:var(--text-light);font-style:italic">Testimonials coming soon...</p>';
+        return;
+      }
+      grid.innerHTML = testimonials.slice(0, 3).map(t => `
+        <div class="testimonial-card">
+          <div class="testimonial-rating">${'★'.repeat(t.rating || 5)}</div>
+          <p class="testimonial-quote">${sanitize(t.content)}</p>
+          <p class="testimonial-author">— ${sanitize(t.name)}, ${sanitize(t.location || 'Nairobi')}</p>
+        </div>
+      `).join('');
+    })
+    .catch(err => {
+      console.error('Failed to load testimonials:', err);
+      grid.innerHTML = '<p style="text-align:center;color:var(--text-light);font-style:italic">Testimonials loading...</p>';
+    });
+}
+
+function renderHomeFAQ() {
+  const grid = document.getElementById('faq-grid');
+  if (!grid) return;
+
+  // Load FAQ from DB
+  api('/api/extended/faqs')
+    .then(res => {
+      const faqs = res.data;
+      if (faqs.length === 0) {
+        grid.innerHTML = '<p style="text-align:center;color:var(--text-light);font-style:italic">FAQ coming soon...</p>';
+        return;
+      }
+      grid.innerHTML = faqs.slice(0, 6).map(faq => `
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFAQ(this)">
+            <span>${sanitize(faq.question)}</span>
+            <span class="faq-toggle">+</span>
+          </div>
+          <div class="faq-answer">
+            <p>${sanitize(faq.answer)}</p>
+          </div>
+        </div>
+      `).join('');
+    })
+    .catch(err => {
+      console.error('Failed to load FAQ:', err);
+      grid.innerHTML = '<p style="text-align:center;color:var(--text-light);font-style:italic">FAQ loading...</p>';
+    });
+}
+
+function toggleFAQ(questionEl) {
+  const item = questionEl.parentElement;
+  item.classList.toggle('active');
+}
+
+function renderHomeAwards() {
+  const grid = document.getElementById('awards-grid');
+  if (!grid) return;
+
+  // Load awards from DB
+  api('/api/extended/press')
+    .then(res => {
+      const awards = res.data;
+      if (awards.length === 0) {
+        grid.innerHTML = '<p style="text-align:center;color:var(--text-light);font-style:italic">Awards and press features coming soon...</p>';
+        return;
+      }
+      grid.innerHTML = awards.slice(0, 6).map(award => `
+        <div class="award-card">
+          <div class="award-year">${sanitize(award.year)}</div>
+          <div class="award-icon">🏆</div>
+          <h3 class="award-title">${sanitize(award.title)}</h3>
+          <p class="award-publication">${sanitize(award.publication)}</p>
+        </div>
+      `).join('');
+    })
+    .catch(err => {
+      console.error('Failed to load awards:', err);
+      grid.innerHTML = '<p style="text-align:center;color:var(--text-light);font-style:italic">Awards loading...</p>';
+    });
 }
 
 /* ══════════════════════════════════════════════
@@ -2159,7 +2425,7 @@ function renderAdminContent(section) {
       </div>
       <div class="admin-section">
         <h2>All Services</h2>
-        <div id="services-list" class="admin-grid">${renderServices(DB.services || [])}</div>
+        <div id="services-list" class="admin-grid">${renderServicesList(DB.services || [])}</div>
       </div>
       <div id="service-form-container" style="display:none">
         <div class="admin-section">
@@ -2342,7 +2608,7 @@ function renderProjectsTable(projects) {
 }
 
 // Render helpers for new admin sections
-function renderServices(services) {
+function renderServicesList(services) {
   if (!services.length) return '<p style="color:var(--text-light)">No services yet. Click "Add New Service" to create one.</p>';
   return services.map(s => `
     <div class="admin-card" style="text-align:left">
@@ -2787,7 +3053,7 @@ function submitContact() {
 }
 
 function openWhatsApp() {
-  window.open('https://wa.me/254700123456?text=Hello%20ArtSpace!%20I%27d%20like%20to%20discuss%20an%20interior%20design%20project.', '_blank');
+  window.open('https://wa.me/254716201058?text=Hello%20ArtSpace!%20I%27d%20like%20to%20discuss%20an%20interior%20design%20project.', '_blank');
 }
 
 /* ══════════════════════════════════════════════
@@ -2819,7 +3085,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Then render
   updateNavAuth();
   renderFeatured();
-  renderServices();
   setTimeout(observeFadeIns, 100);
   // Keyboard: Esc closes modals
   document.addEventListener('keydown', e => {

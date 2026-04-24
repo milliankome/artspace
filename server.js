@@ -545,7 +545,7 @@ app.use('/api/messages', messagesRouter);
 ══════════════════════════════════════════════ */
 const extendedV2Routes = require('./routes/extended-v2');
 const extendedRoutes = require('./routes/extended');
-app.use('/api', extendedRoutes);
+app.use('/api/extended', extendedV2Routes);
 
 /* ══════════════════════════════════════════════
    STATIC FILES — Serve frontend

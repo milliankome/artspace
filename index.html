@@ -1632,20 +1632,33 @@ async function initAPI() {
 
   // Fetch new collections
   try {
-    const [servicesRes, testimonialsRes, faqsRes, quotesRes, teamRes, settingsRes] = await Promise.all([
-      api('/api/services'),
+    // Fetch services (public)
+    const servicesRes = await api('/api/services');
+    if (servicesRes.status === 'success') {
+      DB.services = servicesRes.data;
+      // Re-render services if on services page
+      if (document.getElementById('page-services')?.classList.contains('active')) {
+        renderServices();
+      }
+    }
+  } catch (e) {
+    console.log('Services not available:', e.message);
+  }
+
+  // Fetch other collections (may require auth)
+  try {
+    const [testimonialsRes, faqsRes, quotesRes, teamRes, settingsRes] = await Promise.allSettled([
       api('/api/testimonials'),
       api('/api/faqs'),
       api('/api/quotes'),
       api('/api/team'),
       api('/api/settings')
     ]);
-    if (servicesRes.status === 'success') DB.services = servicesRes.data;
-    if (testimonialsRes.status === 'success') DB.testimonials = testimonialsRes.data;
-    if (faqsRes.status === 'success') DB.faqs = faqsRes.data;
-    if (quotesRes.status === 'success') DB.quoteRequests = quotesRes.data;
-    if (teamRes.status === 'success') DB.teamMembers = teamRes.data;
-    if (settingsRes.status === 'success') DB.siteSettings = settingsRes.data;
+    if (testimonialsRes.status === 'fulfilled' && testimonialsRes.value.status === 'success') DB.testimonials = testimonialsRes.value.data;
+    if (faqsRes.status === 'fulfilled' && faqsRes.value.status === 'success') DB.faqs = faqsRes.value.data;
+    if (quotesRes.status === 'fulfilled' && quotesRes.value.status === 'success') DB.quoteRequests = quotesRes.value.data;
+    if (teamRes.status === 'fulfilled' && teamRes.value.status === 'success') DB.teamMembers = teamRes.value.data;
+    if (settingsRes.status === 'fulfilled' && settingsRes.value.status === 'success') DB.siteSettings = settingsRes.value.data;
   } catch (e) {
     console.log('Some collections not available:', e.message);
   }
@@ -1818,9 +1831,19 @@ const catBadge = c => {
 
 function renderServices() {
   const grid = document.getElementById('services-grid');
-  if (!grid || grid.children.length > 0) return;
-  grid.innerHTML = SERVICES_DATA.map(s => `
-    <div class="service-card fade-in">
+  if (!grid) return;
+
+  // Use DB.services if available, otherwise fall back to hardcoded data
+  const servicesData = DB.services && DB.services.length > 0 ? DB.services.map(s => ({
+    icon: s.icon || '✨',
+    title: s.title || 'Service',
+    price: s.pricingModel || 'Contact for pricing',
+    desc: s.description || '',
+    features: s.serviceArea ? [s.serviceArea] : []
+  })) : SERVICES_DATA;
+
+  grid.innerHTML = servicesData.map(s => `
+    <div class="service-card fade-in visible">
       <div class="service-icon">${s.icon}</div>
       <h3>${sanitize(s.title)}</h3>
       <p>${sanitize(s.desc)}</p>
@@ -2153,7 +2176,7 @@ function renderAdminContent(section) {
       </div>
       <div class="admin-section">
         <h2>All Services</h2>
-        <div id="services-list" class="admin-grid">${renderServices(DB.services || [])}</div>
+        <div id="services-list" class="admin-grid">${renderServicesList(DB.services || [])}</div>
       </div>
       <div id="service-form-container" style="display:none">
         <div class="admin-section">
@@ -2336,7 +2359,7 @@ function renderProjectsTable(projects) {
 }
 
 // Render helpers for new admin sections
-function renderServices(services) {
+function renderServicesList(services) {
   if (!services.length) return '<p style="color:var(--text-light)">No services yet. Click "Add New Service" to create one.</p>';
   return services.map(s => `
     <div class="admin-card" style="text-align:left">
@@ -2781,7 +2804,7 @@ function submitContact() {
 }
 
 function openWhatsApp() {
-  window.open('https://wa.me/254700123456?text=Hello%20ArtSpace!%20I%27d%20like%20to%20discuss%20an%20interior%20design%20project.', '_blank');
+  window.open('https://wa.me/254716201058?text=Hello%20ArtSpace!%20I%27d%20like%20to%20discuss%20an%20interior%20design%20project.', '_blank');
 }
 
 /* ══════════════════════════════════════════════
@@ -2813,7 +2836,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Then render
   updateNavAuth();
   renderFeatured();
-  renderServices();
   setTimeout(observeFadeIns, 100);
   // Keyboard: Esc closes modals
   document.addEventListener('keydown', e => {

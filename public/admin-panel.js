@@ -39,7 +39,7 @@ const ADMIN_CACHE = {};
 /* ── API HELPER ───────────────────────────────────────────────  */
 async function adminApi(path, opts = {}) {
   try {
-    const token = localStorage.getItem('artspace_token') || '';
+    const token = localStorage.getItem('token') || '';
     const res = await fetch(path, {
       headers: {
         'Content-Type': 'application/json',
