@@ -219,3 +219,4 @@ Edit `SERVICES_DATA` array in the `<script>` section of `index.html`.
 ---
 
 *ArtSpace Interior Design © 2025 — Nairobi, Kenya*
+  final touches to the website.
