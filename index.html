@@ -1120,6 +1120,7 @@
     <div class="auth-tabs">
       <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign In</div>
       <div class="auth-tab" id="tab-register" onclick="switchTab('register')">Create Account</div>
+      <div class="auth-tab" id="tab-forgot" onclick="switchTab('forgot')" style="display:none">Reset Password</div>
     </div>
     <div id="auth-error" class="auth-error hidden"></div>
 
@@ -1132,6 +1133,9 @@
       <div class="form-group">
         <label>Password</label>
         <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <a href="#" onclick="showForgotPassword()" style="color:var(--gold);text-decoration:none;font-size:0.9rem">Forgot Password?</a>
       </div>
       <button class="btn-dark" style="width:100%;margin-top:0.5rem" onclick="handleLogin()">Sign In</button>
       
@@ -1158,6 +1162,17 @@
         <input type="password" id="reg-password" placeholder="Min. 8 characters"/>
       </div>
       <button class="btn-dark" style="width:100%;margin-top:0.5rem" onclick="handleRegister()">Create Account</button>
+    </div>
+
+    <!-- Forgot Password Form -->
+    <div id="form-forgot" class="hidden">
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="forgot-email" placeholder="your@email.com"/>
+      </div>
+      <p style="font-size:0.9rem;color:var(--text-light);margin-bottom:1rem">Enter your email address and we'll send you a link to reset your password.</p>
+      <button class="btn-dark" style="width:100%;margin-top:0.5rem" onclick="handleForgotPassword()">Send Reset Link</button>
+      <button class="btn-sm" style="width:100%;margin-top:0.5rem" onclick="switchTab('login')">Back to Sign In</button>
     </div>
   </div>
 </div>
@@ -1579,6 +1594,20 @@ async function api(endpoint, options = {}) {
   return data;
 }
 
+function getAuthToken() {
+  return localStorage.getItem('token') || '';
+}
+
+function authFetch(url, options = {}) {
+  const token = getAuthToken();
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...options.headers,
+  };
+  return fetch(url, { ...options, headers });
+}
+
 /* ══════════════════════════════════════════════
    DATA STORE
 ══════════════════════════════════════════════ */
@@ -1678,10 +1707,17 @@ async function checkAuth() {
         role: res.data.user.role,
         token: token
       };
+      window.currentUser = currentUser;
       updateNavAuth();
+    } else {
+      localStorage.removeItem('token');
+      currentUser = null;
+      window.currentUser = null;
     }
   } catch (e) {
-    // Not logged in - that's fine
+    localStorage.removeItem('token');
+    currentUser = null;
+    window.currentUser = null;
   }
 }
 
@@ -1955,9 +1991,15 @@ function closeAuthModalBtn() {
 function switchTab(tab) {
   document.getElementById('tab-login').classList.toggle('active', tab === 'login');
   document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  document.getElementById('tab-forgot').classList.toggle('active', tab === 'forgot');
   document.getElementById('form-login').classList.toggle('hidden', tab !== 'login');
   document.getElementById('form-register').classList.toggle('hidden', tab !== 'register');
+  document.getElementById('form-forgot').classList.toggle('hidden', tab !== 'forgot');
   clearAuthError();
+}
+
+function showForgotPassword() {
+  switchTab('forgot');
 }
 function showAuthError(msg) {
   const el = document.getElementById('auth-error');
@@ -1983,14 +2025,17 @@ function handleLogin() {
   // API call to login
   api('/api/auth/login', { method: 'POST', body: { email, password: pass } })
     .then(res => {
-      localStorage.setItem('token', res.data.token);
+      const token = res.token || res.data?.token;
+      if (!token) throw new Error('Login succeeded but token was not returned.');
+      localStorage.setItem('token', token);
       currentUser = {
         id: res.data.user._id,
         email: res.data.user.email,
         name: res.data.user.firstName + ' ' + res.data.user.lastName,
         role: res.data.user.role,
-        token: res.data.token
+        token: token
       };
+      window.currentUser = currentUser;
       closeAuthModalBtn();
       updateNavAuth();
       showToast(`Welcome back, ${res.data.user.firstName}!`);
@@ -2013,17 +2058,35 @@ function handleRegister() {
   // API call to register
   api('/api/auth/register', { method: 'POST', body: { firstName: fname, lastName: lname, email, password: pass } })
     .then(res => {
-      localStorage.setItem('token', res.data.token);
+      const token = res.token || res.data?.token;
+      if (!token) throw new Error('Registration succeeded but token was not returned.');
+      localStorage.setItem('token', token);
       currentUser = {
         id: res.data.user._id,
         email: res.data.user.email,
         name: res.data.user.firstName + ' ' + res.data.user.lastName,
         role: res.data.user.role,
-        token: res.data.token
+        token: token
       };
+      window.currentUser = currentUser;
       closeAuthModalBtn();
       updateNavAuth();
       showToast(`Account created! Welcome, ${fname}.`);
+    })
+    .catch(err => showAuthError(err.message));
+}
+
+function handleForgotPassword() {
+  const email = document.getElementById('forgot-email').value.trim().toLowerCase();
+  clearAuthError();
+
+  if (!validateEmail(email)) { showAuthError('Please enter a valid email address.'); return; }
+
+  // API call to request password reset
+  api('/api/auth/forgot-password', { method: 'POST', body: { email } })
+    .then(res => {
+      showToast('Password reset link sent to your email!');
+      switchTab('login');
     })
     .catch(err => showAuthError(err.message));
 }
@@ -2475,9 +2538,11 @@ async function saveService() {
   };
   if (!data.title) return showToast('Title is required');
   try {
-    const res = await fetch('/api/services', {
+    const token = getAuthToken();
+    if (!token) { showToast('Please sign in again to manage services.'); return; }
+
+    const res = await authFetch('/api/services', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + currentUser.token },
       body: JSON.stringify(data)
     });
     const json = await res.json();
@@ -2494,7 +2559,10 @@ async function saveService() {
 async function deleteService(id) {
   if (!confirm('Delete this service?')) return;
   try {
-    const res = await fetch('/api/services/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + currentUser.token } });
+    const token = getAuthToken();
+    if (!token) { showToast('Please sign in again to manage services.'); return; }
+
+    const res = await authFetch('/api/services/' + id, { method: 'DELETE' });
     if (res.ok) {
       DB.services = DB.services.filter(s => s._id !== id);
       showAdminSection('services');

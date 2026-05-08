@@ -6,35 +6,40 @@
 
 const jwt = require('jsonwebtoken');
 
+// JWT configuration - use same as server.js
+const JWT_SECRET = process.env.JWT_SECRET || 'change-this-secret-in-production';
+
 // Protect routes - verify JWT token
 const protect = async (req, res, next) => {
   try {
     let token;
-    
+
     if (req.headers.authorization?.startsWith('Bearer ')) {
       token = req.headers.authorization.split(' ')[1];
     } else if (req.cookies?.jwt) {
       token = req.cookies.jwt;
     }
-    
+
     if (!token) {
       return res.status(401).json({ error: 'Not authorized, no token' });
     }
-    
-    const JWT_SECRET = process.env.JWT_SECRET || 'change-this-secret-in-production';
+
     const decoded = jwt.verify(token, JWT_SECRET);
-    
+
     // Get user from database
     const User = req.app.get('User');
     const user = await User.findById(decoded.id);
-    
+
     if (!user) {
+      console.log('User not found for token:', decoded.id);
       return res.status(401).json({ error: 'User not found' });
     }
-    
+
     req.user = user;
     next();
   } catch (err) {
+    console.log('JWT verification error:', err.message);
+    console.log('Token received:', req.headers.authorization?.substring(0, 50) + '...');
     return res.status(401).json({ error: 'Not authorized, token invalid' });
   }
 };

@@ -379,6 +379,71 @@ authRouter.post('/logout', (req, res) => {
   res.status(200).json({ status: 'success' });
 });
 
+// POST /api/auth/forgot-password
+authRouter.post('/forgot-password', authLimiter,
+  validateBody({
+    email: { required: true, type: 'email' },
+  }),
+  async (req, res) => {
+    try {
+      const { email } = req.body;
+      const user = await User.findOne({ email: email.toLowerCase() });
+      
+      // Always return success to prevent email enumeration
+      if (!user) {
+        return res.status(200).json({ status: 'success', message: 'If an account with that email exists, a password reset link has been sent.' });
+      }
+
+      // Generate reset token (simple implementation - in production use crypto.randomBytes)
+      const resetToken = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
+      
+      // In development, log the reset link. In production, send email
+      const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+      console.log(`Password reset link for ${email}: ${resetUrl}`);
+      
+      // TODO: Send email with reset link
+      // await sendPasswordResetEmail(email, resetUrl);
+      
+      res.status(200).json({ status: 'success', message: 'If an account with that email exists, a password reset link has been sent.' });
+    } catch (err) {
+      console.error('Forgot password error:', err.message);
+      res.status(500).json({ error: 'Failed to process request. Please try again.' });
+    }
+  }
+);
+
+// POST /api/auth/reset-password
+authRouter.post('/reset-password',
+  validateBody({
+    token: { required: true, type: 'string' },
+    password: { required: true, minLen: 8 },
+  }),
+  async (req, res) => {
+    try {
+      const { token, password } = req.body;
+      
+      // Verify reset token
+      const decoded = jwt.verify(token, JWT_SECRET);
+      const user = await User.findById(decoded.id);
+      
+      if (!user) {
+        return res.status(400).json({ error: 'Invalid or expired reset token.' });
+      }
+      
+      // Update password
+      user.password = password;
+      user.loginAttempts = 0;
+      user.lockUntil = undefined;
+      await user.save();
+      
+      res.status(200).json({ status: 'success', message: 'Password updated successfully.' });
+    } catch (err) {
+      console.error('Reset password error:', err.message);
+      res.status(400).json({ error: 'Invalid or expired reset token.' });
+    }
+  }
+);
+
 // GET /api/auth/me
 authRouter.get('/me', protect, (req, res) => {
   res.status(200).json({ status: 'success', data: { user: req.user } });
@@ -545,8 +610,7 @@ app.use('/api/messages', messagesRouter);
 ══════════════════════════════════════════════ */
 const extendedV2Routes = require('./routes/extended-v2');
 const extendedRoutes = require('./routes/extended');
-app.use('/api/extended', extendedV2Routes);
-
+app.use('/api/extended', extendedV2Routes);app.use('/api', extendedRoutes);
 /* ══════════════════════════════════════════════
    STATIC FILES — Serve frontend
 ══════════════════════════════════════════════ */
